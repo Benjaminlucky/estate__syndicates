@@ -1,0 +1,72 @@
+/* CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* Ensures padding and border are included in element's total width and height */
+  margin: 0; /* Removes default margins */
+  padding: 0; /* Removes default padding */
+}
+
+html {
+  scroll-behavior: smooth; /* Enables smooth scrolling for anchor links */
+}
+
+body {
+  line-height: 1.5; /* Sets a default line-height for better readability */
+  font-family: sans-serif; /* Uses a generic sans-serif font as default */
+  text-rendering: optimizeSpeed; /* Improves rendering performance */
+  -webkit-font-smoothing: antialiased; /* Smooths text in WebKit browsers */
+  font-family: "Cinzel", serif;
+  background-color: #000000;
+  color: white;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block; /* Ensures media elements are block-level elements */
+  max-width: 100%; /* Makes media elements responsive */
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit; /* Ensures form elements inherit font styling from the body */
+}
+
+button {
+  background: none; /* Removes default button background */
+  border: none; /* Removes default button border */
+  padding: 0; /* Removes default padding */
+  cursor: pointer; /* Makes buttons behave like clickable elements */
+}
+
+a {
+  text-decoration: none; /* Removes default underline on links */
+  color: inherit; /* Makes links inherit color from parent elements */
+}
+
+ul,
+ol {
+  list-style: none; /* Removes default list bullets and numbering */
+}
+
+table {
+  border-collapse: collapse; /* Collapses table borders */
+  border-spacing: 0; /* Removes default table cell spacing */
+}
+
+blockquote,
+q {
+  quotes: none; /* Removes default quote styling */
+}
+
+blockquote::before,
+blockquote::after,
+q::before,
+q::after {
+  content: ""; /* Ensures no default quote marks are displayed */
+}
