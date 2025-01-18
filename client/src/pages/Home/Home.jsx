@@ -1,5 +1,6 @@
 import React from "react";
 import Hero from "../../components/hero/Hero";
+import Homeintro from "../../components/homeIntro/Homeintro";
 
 function Home() {
   return (
@@ -10,6 +11,9 @@ function Home() {
           <Hero />
         </div>
         {/* hero section ends here */}
+        {/* Home intro starts here  */}
+        <Homeintro />
+        {/* Home Intro ends here */}
       </div>
     </main>
   );
