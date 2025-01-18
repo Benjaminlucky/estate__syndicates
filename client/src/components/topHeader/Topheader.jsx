@@ -24,7 +24,7 @@ function Topheader() {
                 <img
                   src="./assets/eslogo.svg"
                   alt="Estate Syndicate Logo"
-                  className="w-[90px]"
+                  className="w-[90px] "
                 />
               </Link>
             </div>
@@ -79,7 +79,7 @@ function Topheader() {
               <img
                 src="./assets/eslogo.svg"
                 alt="Estate Syndicates Logo"
-                className="w-[80px]"
+                className="w-[80px] iphone5s:w-[60px]"
               />
             </Link>
           </div>

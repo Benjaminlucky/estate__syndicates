@@ -33,6 +33,11 @@ export default {
         chivo: ["Chivo", "sans-serif"], //Define the "Chivo" font with fallback
         cinzel: ["Cinzel", "sans-serif"], //Define the "Cinzel" font with fallback
       },
+      screens: {
+        iphone5s: "320px", //Custom Break point for iPhone 5s
+        iPhone12Pro: "390px", //Custom Break point iPhone Pro
+        iPhone12ProMax: "428px", // Custom Break Point for iPhone 12 Pro Max
+      },
     },
   },
   plugins: [],
