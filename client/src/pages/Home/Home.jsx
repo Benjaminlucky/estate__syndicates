@@ -6,6 +6,7 @@ import Homeprojects from "../../components/homeProjects/Homeprojects";
 import Homebenefits from "../../components/homeBenefits/Homebenefits";
 import Investorsreview from "../../components/investorreview/Investorsreview";
 import Homefirststep from "../../components/homefistStep/HomefirstStep";
+import Homeprocess from "../../components/homeprocess/Homeprocess";
 
 function Home() {
   return (
@@ -26,6 +27,9 @@ function Home() {
         <Homeprojects />
         {/* Home Projects Ends Here */}
         {/* Home benfits starts Here */}
+        {/* Home - How it works Starts Here */}
+        <Homeprocess />
+        {/* Home - How it works ends Here */}
         <Homebenefits />
         {/* Home benefits ends here */}
         {/* Home Investors Review Starts Here */}

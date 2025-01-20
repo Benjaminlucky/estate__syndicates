@@ -9,6 +9,7 @@ import Signup from "./pages/signup/Signup";
 import Login from "./pages/login/Login";
 import Topheader from "./components/topHeader/Topheader";
 import Company from "./pages/company/Company";
+import Footer from "./components/footer/Footer";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
       </Routes>
+      <Footer />
     </Router>
   );
 }

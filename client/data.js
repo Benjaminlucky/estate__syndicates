@@ -4,6 +4,13 @@ import { PiShareNetworkBold } from "react-icons/pi";
 import { FaTrophy } from "react-icons/fa6";
 import { IoLogoInstagram } from "react-icons/io5";
 import { MdMarkEmailRead } from "react-icons/md";
+import { FaUserCircle } from "react-icons/fa";
+import { GiMagnifyingGlass } from "react-icons/gi";
+import { FaUsers } from "react-icons/fa";
+import { FaPiggyBank } from "react-icons/fa";
+import { FaFacebook } from "react-icons/fa6";
+
+import { FaXTwitter } from "react-icons/fa6";
 
 export const mainNav = [
   {
@@ -36,6 +43,32 @@ export const accountLink = [
   {
     name: "Log In",
     link: "/login",
+  },
+];
+
+export const legallink = [
+  {
+    name: "Privacy Policy",
+    link: "#",
+  },
+  {
+    name: "Terms and Condition",
+    link: "#",
+  },
+];
+
+export const social = [
+  {
+    social: FaFacebook,
+    link: "#",
+  },
+  {
+    social: IoLogoInstagram,
+    link: "#",
+  },
+  {
+    social: FaXTwitter,
+    link: "#",
   },
 ];
 
@@ -165,5 +198,24 @@ export const homeReviews = [
     mail: MdMarkEmailRead,
     review:
       "Joining Estate Syndicates was a game-changer for me. The seamless process, expert guidance, and consistent returns made real estate investing both simple and rewarding.",
+  },
+];
+
+export const homeprocess = [
+  {
+    name: "Sign Up",
+    icon: FaUserCircle,
+  },
+  {
+    name: "Choose a Project",
+    icon: GiMagnifyingGlass,
+  },
+  {
+    name: "Invest Together",
+    icon: FaUsers,
+  },
+  {
+    name: "Earn Returns",
+    icon: FaPiggyBank,
   },
 ];
