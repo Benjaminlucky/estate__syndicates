@@ -19,6 +19,7 @@ body {
   font-family: "Cinzel", serif;
   background-color: #000000;
   color: white;
+  overflow-x: hidden;
 }
 
 img,

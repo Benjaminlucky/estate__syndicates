@@ -1,0 +1,21 @@
+.swiper-pagination {
+  margin-top: 20px; /* Add the desired margin */
+  display: flex;
+  justify-content: center; /* Centers the pagination dots */
+  gap: 5px;
+
+  /* Adds spacing between dots */
+}
+
+.swiper-pagination-bullet {
+  background-color: #dec0a3 !important; /* Golden color for dots */
+  border-radius: 50%;
+  opacity: 0.8;
+  margin-top: 50px !important;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 1;
+  transform: scale(1.2); /* Slightly enlarge active bullet */
+}

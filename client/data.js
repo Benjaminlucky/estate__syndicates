@@ -2,6 +2,8 @@ import { FaCoins } from "react-icons/fa";
 import { FiSearch } from "react-icons/fi";
 import { PiShareNetworkBold } from "react-icons/pi";
 import { FaTrophy } from "react-icons/fa6";
+import { IoLogoInstagram } from "react-icons/io5";
+import { MdMarkEmailRead } from "react-icons/md";
 
 export const mainNav = [
   {
@@ -106,5 +108,62 @@ export const homeBenefits = [
   {
     title: "Transparent and Secure Platform",
     text: "We prioritize your trust by providing clear insights, data-driven projections, and a secure platform for managing your investments.",
+  },
+];
+
+export const homeReviews = [
+  {
+    image: "/assets/investor1.jpg",
+    name: "Chimezie O.",
+    location: "(Lagos Nigeria)",
+    social: IoLogoInstagram,
+    mail: MdMarkEmailRead,
+    review:
+      "Joining Estate Syndicates was a turning point for me. The fractional ownership model made real estate investment easy, and my returns have been consistent!",
+  },
+  {
+    image: "/assets/investor2.jpg",
+    name: "Chibuike O.",
+    location: "(Enugu Nigeria)",
+    social: IoLogoInstagram,
+    mail: MdMarkEmailRead,
+    review:
+      "I love the transparency Estate Syndicates offers. The detailed project insights and secure platform give me confidence in every investment I make.",
+  },
+  {
+    image: "/assets/investor3.jpg",
+    name: "Victor T.",
+    location: "(Mary U.S.A)",
+    social: IoLogoInstagram,
+    mail: MdMarkEmailRead,
+    review:
+      "Real estate seemed out of reach until I discovered Estate Syndicates. Now, I’m part of a thriving community and earning steady returns on my investments!",
+  },
+  {
+    image: "/assets/investor4.jpg",
+    name: "Omasiri U.",
+    location: "(Tennessee U.S.A)",
+    social: IoLogoInstagram,
+    mail: MdMarkEmailRead,
+    review:
+      "Estate Syndicates is perfect for anyone new to real estate. The team’s support and the platform’s simplicity make investing enjoyable and rewarding",
+  },
+  {
+    image: "/assets/investor5.jpg",
+    name: "Udoka O.",
+    location: "(Birmingham England)",
+    social: IoLogoInstagram,
+    mail: MdMarkEmailRead,
+    review:
+      "Pooling resources with like-minded investors has been empowering. Estate Syndicates opened doors to opportunities I never imagined I could access.",
+  },
+  {
+    image: "/assets/investor6.jpg",
+    name: "Emeka A.",
+    location: "(Glasgow Scotland)",
+    social: IoLogoInstagram,
+    mail: MdMarkEmailRead,
+    review:
+      "Joining Estate Syndicates was a game-changer for me. The seamless process, expert guidance, and consistent returns made real estate investing both simple and rewarding.",
   },
 ];

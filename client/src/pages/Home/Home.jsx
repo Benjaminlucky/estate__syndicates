@@ -4,6 +4,7 @@ import Homeintro from "../../components/homeIntro/Homeintro";
 import Homechoose from "../../components/homeChoose/Homechoose";
 import Homeprojects from "../../components/homeProjects/Homeprojects";
 import Homebenefits from "../../components/homeBenefits/Homebenefits";
+import Investorsreview from "../../components/investorreview/Investorsreview";
 
 function Home() {
   return (
@@ -26,6 +27,9 @@ function Home() {
         {/* Home benfits starts Here */}
         <Homebenefits />
         {/* Home benefits ends here */}
+        {/* Home Investors Review Starts Here */}
+        <Investorsreview />
+        {/* Home Investors Review Ends Here */}
       </div>
     </main>
   );
