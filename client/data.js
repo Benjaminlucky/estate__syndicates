@@ -89,3 +89,22 @@ export const homeProject = [
     link: "/",
   },
 ];
+
+export const homeBenefits = [
+  {
+    title: "Access to Exclusive Real Estate Deals",
+    text: "Gain entry to premium, high-value real estate projects that are typically reserved for institutional investors or high networth individuals.",
+  },
+  {
+    title: "Lower Entry Barriers with Fractional Ownership",
+    text: "Invest without the need for large upfront capital. With our fractional ownership model, you can own a share of lucrative properties at an affordable cost.",
+  },
+  {
+    title: "Diversify Your Investment Portfolio",
+    text: "We prioritize your trust by providing clear insights, data driven projections, and a secure platform for managing your investments.",
+  },
+  {
+    title: "Transparent and Secure Platform",
+    text: "We prioritize your trust by providing clear insights, data-driven projections, and a secure platform for managing your investments.",
+  },
+];

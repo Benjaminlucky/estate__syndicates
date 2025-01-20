@@ -86,7 +86,7 @@ function Homeprojects() {
                           <div className="status bg-golden-200 rounded-lg px-4 py-2 font-chivo uppercase text-golden-700">
                             Status
                           </div>
-                          <div className="stat font-chivo text-golden-300">
+                          <div className="stat font-chivo text-golden-300 font-bold">
                             {project.Status}
                           </div>
                         </div>
@@ -94,7 +94,7 @@ function Homeprojects() {
                           <div className="purpose status bg-golden-300 rounded-lg px-4 py-2 font-chivo uppercase text-golden-800">
                             Purpose
                           </div>
-                          <div className="pur stat font-chivo text-golden-300">
+                          <div className="pur stat font-chivo text-golden-300 font-bold">
                             {project.purpose}
                           </div>
                         </div>
@@ -102,7 +102,7 @@ function Homeprojects() {
                           <div className="return purpose status bg-golden-400 rounded-lg px-4 py-2 font-chivo uppercase text-golden-900">
                             Return
                           </div>
-                          <div className="ret font-chivo text-golden-300">
+                          <div className="ret font-chivo text-golden-300 font-bold">
                             {project.Return}
                           </div>
                         </div>
@@ -110,7 +110,7 @@ function Homeprojects() {
                           <div className="duration bg-black-200  rounded-lg px-4 py-2 font-chivo uppercase text-golden-900">
                             Duration
                           </div>
-                          <div className="dur font-chivo">
+                          <div className="dur font-chivo font-bold">
                             {project.Duration}
                           </div>
                         </div>
