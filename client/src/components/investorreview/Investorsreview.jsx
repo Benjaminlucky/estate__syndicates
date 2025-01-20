@@ -10,10 +10,10 @@ import "./investorsreview.css";
 
 function Investorsreview() {
   return (
-    <div className="investorReview__section mt-32 w-full">
-      <div className="investorsReview__Wrapper w-4/5 mx-auto">
+    <div className="investorReview__section mt-16 md:mt-32 w-full">
+      <div className="investorsReview__Wrapper w-full md:w-4/5 mx-auto">
         <div className="iReview__Content w-full">
-          <div className="review__title text-center font-bold uppercase text-4xl">
+          <div className="review__title text-center font-bold uppercase text-2xl md:text-4xl">
             <h3>What our Investors are Saying</h3>
           </div>
           <div className="reviews__wrapper py-16 w-full">
