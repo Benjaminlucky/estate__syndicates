@@ -6,9 +6,9 @@ function Homeintro() {
   const isInView = useInView(ref, { once: true, margin: "0px 0px -100px 0px" });
 
   return (
-    <div className="homeIntro__section w-full mt-32 mb-32" ref={ref}>
+    <div className="homeIntro__section w-full mt-32 mb-16 md:mb-32" ref={ref}>
       <motion.div
-        className="homeIntro__wrapper flex flex-col w-full md:w-7/12 mx-auto justify-center"
+        className="homeIntro__wrapper flex flex-col w-full md:w-8/12 mx-auto justify-center"
         initial={{ opacity: 0, scale: 0.9, y: 50 }}
         animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
         transition={{ duration: 0.8, ease: "easeInOut" }}
@@ -20,7 +20,7 @@ function Homeintro() {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <div className="introTitle w-full">
-            <h3 className="text-center text-sm md:text-4xl font-bold">
+            <h3 className="text-center text-sm md:text-4xl font-bold uppercase">
               Making real estate investments accessible to everyone through
               fractional ownership.
             </h3>

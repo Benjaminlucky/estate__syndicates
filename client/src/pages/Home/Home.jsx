@@ -1,6 +1,7 @@
 import React from "react";
 import Hero from "../../components/hero/Hero";
 import Homeintro from "../../components/homeIntro/Homeintro";
+import Homechoose from "../../components/homeChoose/Homechoose";
 
 function Home() {
   return (
@@ -14,6 +15,9 @@ function Home() {
         {/* Home intro starts here  */}
         <Homeintro />
         {/* Home Intro ends here */}
+        {/* Home Why Choose us Starts Here */}
+        <Homechoose />
+        {/* Home Why Choose us ends here */}
       </div>
     </main>
   );
