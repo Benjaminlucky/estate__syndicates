@@ -6,7 +6,10 @@ function Homeintro() {
   const isInView = useInView(ref, { once: true, margin: "0px 0px -100px 0px" });
 
   return (
-    <div className="homeIntro__section w-full mt-32 mb-16 md:mb-32" ref={ref}>
+    <div
+      className="homeIntro__section w-full mt-32 md:mt-64 mb-16 md:mb-32"
+      ref={ref}
+    >
       <motion.div
         className="homeIntro__wrapper flex flex-col w-full md:w-8/12 mx-auto justify-center"
         initial={{ opacity: 0, scale: 0.9, y: 50 }}

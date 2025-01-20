@@ -59,3 +59,33 @@ export const perk = [
     icon: FaTrophy,
   },
 ];
+
+export const homeProject = [
+  {
+    image: "/assets/pristine.jpg",
+    name: "Pristine Residences",
+    Status: "Fully Syndicated",
+    purpose: "Short-let Apartments",
+    Return: "20% P.A",
+    Duration: "Cycle 1 (2/5)",
+    link: "/",
+  },
+  {
+    image: "/assets/4bedroom.jpg",
+    name: "4 Bedroom Fully Detached Duplex",
+    Status: "Closed",
+    purpose: "Build and Sell",
+    Return: "40%",
+    Duration: "Investment Season 1/1",
+    link: "/",
+  },
+  {
+    image: "/assets/blocksflat.jpg",
+    name: "Blocks of Flats Badore",
+    Status: "Fully Syndicated",
+    purpose: "Shortlet Apartments",
+    Return: "Estimated 30% P.A",
+    Duration: "Investment Season 0/5",
+    link: "/",
+  },
+];

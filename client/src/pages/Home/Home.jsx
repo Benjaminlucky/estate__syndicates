@@ -2,6 +2,7 @@ import React from "react";
 import Hero from "../../components/hero/Hero";
 import Homeintro from "../../components/homeIntro/Homeintro";
 import Homechoose from "../../components/homeChoose/Homechoose";
+import Homeprojects from "../../components/homeProjects/Homeprojects";
 
 function Home() {
   return (
@@ -18,6 +19,9 @@ function Home() {
         {/* Home Why Choose us Starts Here */}
         <Homechoose />
         {/* Home Why Choose us ends here */}
+        {/* Home Projects Starts Here */}
+        <Homeprojects />
+        {/* Home Projects Ends Here */}
       </div>
     </main>
   );

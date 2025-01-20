@@ -1,0 +1,16 @@
+.projectimage img {
+  height: 400px; /* Set your desired height */
+  width: 100%; /* Make sure it spans the width of its container */
+  object-fit: cover; /* Ensures the image maintains aspect ratio and fills the container */
+  border-radius: 8px; /* Optional: Adds rounded corners */
+}
+
+.swiper-pagination-bullet-active {
+  background-color: #c99e75 !important;
+  margin-top: 30px !important;
+}
+
+.swiper-pagination-bullet {
+  background-color: #f1e2d0 !important;
+  margin-top: 30px !important;
+}
