@@ -1,0 +1,6 @@
+.swiper-button-prev,
+.swiper-button-next {
+  display: block !important;
+  opacity: 1 !important;
+  z-index: 100 !important;
+}

@@ -9,8 +9,14 @@ import { GiMagnifyingGlass } from "react-icons/gi";
 import { FaUsers } from "react-icons/fa";
 import { FaPiggyBank } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa6";
-
+import { FaChartPie } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import { FaStar } from "react-icons/fa";
+import { FaShieldAlt } from "react-icons/fa";
+import { HiOutlineChartPie } from "react-icons/hi";
+import { IoRocketSharp } from "react-icons/io5";
+import { FaPuzzlePiece } from "react-icons/fa6";
+import { FaRecycle } from "react-icons/fa";
 
 export const mainNav = [
   {
@@ -145,24 +151,24 @@ export const homeBenefits = [
 ];
 
 export const homeReviews = [
-  {
-    image: "/assets/investor1.jpg",
-    name: "Chimezie O.",
-    location: "(Lagos Nigeria)",
-    social: IoLogoInstagram,
-    mail: MdMarkEmailRead,
-    review:
-      "Joining Estate Syndicates was a turning point for me. The fractional ownership model made real estate investment easy, and my returns have been consistent!",
-  },
-  {
-    image: "/assets/investor2.jpg",
-    name: "Chibuike O.",
-    location: "(Enugu Nigeria)",
-    social: IoLogoInstagram,
-    mail: MdMarkEmailRead,
-    review:
-      "I love the transparency Estate Syndicates offers. The detailed project insights and secure platform give me confidence in every investment I make.",
-  },
+  // {
+  //   image: "/assets/investor1.jpg",
+  //   name: "Chimezie O.",
+  //   location: "(Lagos Nigeria)",
+  //   social: IoLogoInstagram,
+  //   mail: MdMarkEmailRead,
+  //   review:
+  //     "Joining Estate Syndicates was a turning point for me. The fractional ownership model made real estate investment easy, and my returns have been consistent!",
+  // },
+  // {
+  //   image: "/assets/investor2.jpg",
+  //   name: "Chibuike O.",
+  //   location: "(Enugu Nigeria)",
+  //   social: IoLogoInstagram,
+  //   mail: MdMarkEmailRead,
+  //   review:
+  //     "I love the transparency Estate Syndicates offers. The detailed project insights and secure platform give me confidence in every investment I make.",
+  // },
   {
     image: "/assets/investor3.jpg",
     name: "Victor T.",
@@ -173,25 +179,25 @@ export const homeReviews = [
       "Real estate seemed out of reach until I discovered Estate Syndicates. Now, I’m part of a thriving community and earning steady returns on my investments!",
   },
   {
-    image: "/assets/investor4.jpg",
-    name: "Omasiri U.",
-    location: "(Tennessee U.S.A)",
+    image: "/assets/investor6.jpg",
+    name: "Lucky B.",
+    location: "(Lagos Nigeria)",
     social: IoLogoInstagram,
     mail: MdMarkEmailRead,
     review:
       "Estate Syndicates is perfect for anyone new to real estate. The team’s support and the platform’s simplicity make investing enjoyable and rewarding",
   },
+  // {
+  //   image: "/assets/investor5.jpg",
+  //   name: "Udoka O.",
+  //   location: "(Birmingham England)",
+  //   social: IoLogoInstagram,
+  //   mail: MdMarkEmailRead,
+  //   review:
+  //     "Pooling resources with like-minded investors has been empowering. Estate Syndicates opened doors to opportunities I never imagined I could access.",
+  // },
   {
-    image: "/assets/investor5.jpg",
-    name: "Udoka O.",
-    location: "(Birmingham England)",
-    social: IoLogoInstagram,
-    mail: MdMarkEmailRead,
-    review:
-      "Pooling resources with like-minded investors has been empowering. Estate Syndicates opened doors to opportunities I never imagined I could access.",
-  },
-  {
-    image: "/assets/investor6.jpg",
+    image: "/assets/investor4.jpg",
     name: "Emeka A.",
     location: "(Glasgow Scotland)",
     social: IoLogoInstagram,
@@ -217,5 +223,98 @@ export const homeprocess = [
   {
     name: "Earn Returns",
     icon: FaPiggyBank,
+  },
+];
+
+export const metric = [
+  {
+    number: "10+",
+    metric: "Successfully Syndicated Projects",
+  },
+  {
+    number: "30%",
+    metric: "Average ROI",
+  },
+  {
+    number: "95%",
+    metric: "Investor Satifaction",
+  },
+  {
+    number: "100%",
+    metric: "Secure and Transparent Processes",
+  },
+];
+
+export const whatwedo = [
+  {
+    title: "Fractional Ownership",
+    text: "Own shares in high-value properties without the need for large upfront.",
+    icon: FaChartPie,
+  },
+  {
+    title: "Exclusive Projects",
+    text: "Enjoy clear, data-driven insights and full visibility into every project, ensuring confidence in your investment.",
+    icon: FaStar,
+  },
+  {
+    title: "Secure Platform",
+    text: "Experience seamless and secure investment processes.",
+    icon: FaShieldAlt,
+  },
+  {
+    title: "Portfolio Diversification",
+    text: "Spread your investment across multiple projects for reduced risk and better returns.",
+    icon: HiOutlineChartPie,
+  },
+];
+
+export const values = [
+  {
+    value: "Integrity",
+    desc: "We uphold the highest standards of honesty and transparency in all our dealings, ensuring our clients' trust is never compromised.",
+    icon: FaShieldAlt,
+  },
+  {
+    value: "Innovation",
+    desc: "We use advanced technology and creative strategies to simplify real estate investments, ensuring seamless experiences.",
+    icon: IoRocketSharp,
+  },
+  {
+    value: "Collaboration",
+    desc: "We value partnerships and teamwork, working alongside investors and stakeholders to achieve collective success.",
+    icon: FaPuzzlePiece,
+  },
+  {
+    value: "Sustainability",
+    desc: "We focus on sustainable practices, ensuring our projects positively impact both the environment and local communities.",
+    icon: FaRecycle,
+  },
+];
+
+export const leadership = [
+  {
+    avatar: "./assets/leadership1.jpg",
+    name: "C.I NNEBE",
+    role: "Founder & CEO",
+  },
+  {
+    avatar: "./assets/leadership2.jpg",
+    name: "B.A ADEKINTAN",
+    role: "Finance & Risk",
+  },
+  {
+    avatar: "./assets/leadership3.jpg",
+    name: "J.K WOODS",
+    role: "Legal",
+  },
+  {
+    avatar: "./assets/leadership4.jpg",
+    name: "U.C BANKS",
+    role: "Sales & Marketing",
+  },
+  {
+    avatar: "./assets/leadership5.jpg",
+    name: "D.T JACOBS",
+    role: "Tech & Media",
   },
 ];
