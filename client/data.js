@@ -43,7 +43,7 @@ export const mainNav = [
 
 export const accountLink = [
   {
-    name: "Sign up",
+    name: "Get Started",
     link: "/signup",
   },
   {
