@@ -24,13 +24,15 @@ import Footer from "./components/footer/Footer";
 import AdminSignup from "./pages/admin/AdminSignup";
 import AdminLogin from "./pages/admin/AdminLogin";
 
-// Dashboards
+// Dashboards (Replace with actual components)
+import InvestorDashboard from "./pages/investor/dashboard/InvestorDashboard";
+import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 
-const clerkPubKey = "your-clerk-public-key"; // Replace with actual Clerk public key
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY; // Ensure this is set in .env
 
 function App() {
   return (
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={clerkPubKey}>
       <Router>
         <Topheader />
         <Routes>
@@ -46,17 +48,42 @@ function App() {
           <Route path="/adminLogin" element={<AdminLogin />} />
 
           {/* Protected Investor Dashboard */}
-          <Route path="/investor-dashboard" element={<SignedIn></SignedIn>} />
           <Route
             path="/investor-dashboard/*"
-            element={<Navigate to="/login" />}
+            element={
+              <SignedIn>
+                <InvestorDashboard />
+              </SignedIn>
+            }
+          />
+          <Route
+            path="/investor-dashboard/*"
+            element={
+              <SignedOut>
+                <Navigate to="/login" />
+              </SignedOut>
+            }
           />
 
           {/* Protected Admin Dashboard */}
-          <Route path="/admin-dashboard" element={<SignedIn></SignedIn>} />
-          <Route path="/admin-dashboard/*" element={<Navigate to="/login" />} />
+          <Route
+            path="/admin-dashboard/*"
+            element={
+              <SignedIn>
+                <AdminDashboard />
+              </SignedIn>
+            }
+          />
+          <Route
+            path="/admin-dashboard/*"
+            element={
+              <SignedOut>
+                <Navigate to="/adminLogin" />
+              </SignedOut>
+            }
+          />
 
-          {/* Redirect if not signed in */}
+          {/* Redirect unauthenticated users */}
           <Route
             path="/dashboard/*"
             element={

@@ -1,0 +1,8 @@
+input {
+  background-color: transparent !important;
+  border: transparent !important;
+}
+
+input::placeholder {
+  color: #979797;
+}
