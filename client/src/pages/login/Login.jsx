@@ -1,15 +1,68 @@
-import React from "react";
-import { SignUp } from "@clerk/clerk-react";
+import React, { useState } from "react";
+import { SignUp, useSignIn } from "@clerk/clerk-react";
 import { Card } from "flowbite-react";
 import { Checkbox, Button, Label } from "flowbite-react";
 import { FaUserCircle } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MdEmail } from "react-icons/md";
 import { FaPhoneAlt } from "react-icons/fa";
 import { RiLockPasswordFill } from "react-icons/ri";
+import { use } from "react";
 
 const Login = () => {
+  const { signIn, isLoaded } = useSignIn();
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    emailAddress: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isLoaded) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn.create({
+        identifier: formData.emailAddress,
+        password: formData.password,
+      });
+
+      if (result.status === "complete") {
+        navigate("/investor-dashboard"); // Redirect after login
+      } else {
+        console.error("Unexpected Clerk Response:", result);
+      }
+    } catch (err) {
+      setError("Invalid email or password");
+      console.error("Login Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/investor-dashboard",
+        redirectUrlComplete: "/investor-dashboard",
+      });
+    } catch (err) {
+      console.error("Google Login Error:", err);
+    }
+  };
   return (
     <main className="signup__section w-full">
       <div className="signup__wrapper w-10/12 mx-auto py-32">
@@ -42,7 +95,7 @@ const Login = () => {
                     </p>
                   </div>
                   <div className="form__container">
-                    <form>
+                    <form onSubmit={handleSubmit}>
                       <div className="form__content w-full md:w-4/5 py-12 font-chivo">
                         <div className="last__name mt-6">
                           <label htmlFor="email" className="text-black-300">
@@ -53,6 +106,10 @@ const Login = () => {
                             <input
                               type="email"
                               placeholder="nnebe@estatesindicates.com"
+                              id="emailAddress"
+                              name="emailAddress"
+                              value={formData.emailAddress}
+                              onChange={handleChange}
                               className="w-full bg-transparent rounded-sm py-2 focus:ring-0 focus:border-0 focus:outline-0 text-bold"
                             />
                           </div>
@@ -68,6 +125,9 @@ const Login = () => {
                               type="password"
                               id="password"
                               placeholder="*******"
+                              name="password"
+                              value={formData.password}
+                              onChange={handleChange}
                               className="w-full bg-transparent rounded-sm py-2 focus:ring-0 focus:border-0 focus:outline-0 text-bold"
                             />
                           </div>

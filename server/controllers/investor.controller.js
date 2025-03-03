@@ -61,3 +61,59 @@ export const createInvestor = async (req, res) => {
     return res.status(err.status || 500).json({ message: err.message });
   }
 };
+
+// Handle Login Controller
+
+export const loginInvestor = async (req, res) => {
+  const { emailAddress, password } = req.body;
+
+  try {
+    // ✅ Check if investor exists in MongoDB
+    const existingInvestor = await Investor.findOne({ emailAddress });
+    if (!existingInvestor) {
+      return res.status(404).json({ message: "Investor not found" });
+    }
+
+    // ✅ Verify password
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      existingInvestor.password
+    );
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    // ✅ Fetch Clerk user to ensure consistency
+    const clerkUser = await clerkClient.users.getUser(existingInvestor.clerkId);
+    if (!clerkUser) {
+      return res.status(400).json({ message: "Investor not found in Clerk" });
+    }
+
+    // ✅ Generate JWT for session Management
+    const token = jwt.sign(
+      { id: existingInvestor._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    // ✅ Send back the token
+    return res.status(200).json({
+      token,
+      investor: {
+        id: existingInvestor._id,
+        firstName: existingInvestor.firstName,
+        lastName: existingInvestor.lastName,
+        emailAddress: existingInvestor.emailAddress,
+        phoneNumber: existingInvestor.phoneNumber,
+      },
+    });
+  } catch (error) {
+    console.error("Login Error:", error);
+    return res
+      .status(error.status || 500)
+      .json({
+        message: "Server error, please try again",
+        error: error.message,
+      });
+  }
+};

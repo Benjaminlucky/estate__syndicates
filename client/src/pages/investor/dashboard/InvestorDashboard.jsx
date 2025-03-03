@@ -2,7 +2,7 @@ import React from "react";
 
 function InvestorDashboard() {
   return (
-    <div>
+    <div className="py-64 text-white">
       <h1>Investor Dashboard</h1>
     </div>
   );

@@ -78,7 +78,7 @@ function App() {
             path="/admin-dashboard/*"
             element={
               <SignedOut>
-                <Navigate to="/adminLogin" />
+                <Navigate to="/login" />
               </SignedOut>
             }
           />

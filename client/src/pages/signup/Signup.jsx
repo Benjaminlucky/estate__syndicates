@@ -270,7 +270,7 @@ const Signup = () => {
                 <p className="text-black-300 mt-8">or register with</p>
                 <button
                   onClick={handleGoogleSignup}
-                  className="flex items-center gap-2 w-full mt-4 justify-center border border-gray-300 text-black px-4 py-3 rounded-md"
+                  className="flex items-center gap-2 w-full mt-4 justify-center border-solid  border-gray-300 text-black px-4 py-3 rounded-md"
                 >
                   <FcGoogle className="text-2xl" /> <p>Google</p>
                 </button>
