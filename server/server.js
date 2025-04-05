@@ -21,6 +21,8 @@ mongoose
 // Define allowed origins
 const allowedOrigins = [
   "http://localhost:3000", // Dev
+  "http://localhost:5173",
+  "https://estate-syndicates.onrender.com",
   "https://estatesyndicates.netlify.app", // Test
   "https://estatesindicates.com", // Production
 ];
