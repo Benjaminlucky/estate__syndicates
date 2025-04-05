@@ -18,29 +18,24 @@ mongoose
     console.log(err.message);
   });
 
-// Define allowed origins
-const allowedOrigins = [
-  "http://localhost:3000", // Dev
-  "http://localhost:5173",
-  "https://estate-syndicates.onrender.com",
-  "https://estatesyndicates.netlify.app", // Test
-  "https://estatesindicates.com", // Production
-];
-
-// CORS middleware
+// Your CORS middleware setup:
 app.use(
   cors({
     origin: function (origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:5173", // Local development URL
+        "https://estate-syndicates.onrender.com", // Backend production URL
+        "https://estatesindicates.com", // Your frontend production URL
+      ];
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
+        callback(null, true); // Allow requests from these origins
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(new Error("Not allowed by CORS")); // Reject other origins
       }
     },
-    credentials: true, // Enable this if you're using cookies/auth headers
+    credentials: true, // Allow credentials (cookies) to be sent with requests
   })
 );
-
 // Body parser
 app.use(express.json());
 
