@@ -7,6 +7,7 @@ import { RiLockPasswordFill } from "react-icons/ri";
 import { AiOutlineCheckCircle } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import "./signup.css";
 
 const Signup = () => {
@@ -23,6 +24,7 @@ const Signup = () => {
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,16 +33,33 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg("");
+    setSuccess(false);
     setLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      setErrorMsg("Passwords do not match.");
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:5000/investor/signup", {
+      // Determine the correct backend URL based on the current domain
+      const domain = window.location.hostname;
+
+      let apiUrl = "";
+      if (
+        domain === "estatesindicates.com" ||
+        domain === "www.estatesindicates.com"
+      ) {
+        apiUrl = "https://estate-syndicates.onrender.com"; // Production URL
+      } else if (domain === "estatesyndicates.netlify.app") {
+        apiUrl = "https://estate-syndicates.onrender.com"; // Staging or Netlify URL
+      } else {
+        apiUrl = "http://localhost:5000"; // Local development URL
+      }
+
+      const response = await fetch(`${apiUrl}/investor/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,12 +78,12 @@ const Signup = () => {
           navigate("/login");
         }, 2500);
       } else {
-        alert(data.message || "Signup failed. Please try again.");
+        setErrorMsg(data.message || "Signup failed. Please try again.");
       }
     } catch (error) {
       console.error("Error during signup:", error);
       setLoading(false);
-      alert("An error occurred. Please try again.");
+      setErrorMsg("Something went wrong. Please try again.");
     }
   };
 
@@ -259,6 +278,20 @@ const Signup = () => {
                   </span>
                 </motion.div>
               )}
+              {/* Animated Error Message */}
+              <AnimatePresence>
+                {errorMsg && (
+                  <motion.div
+                    className="bg-red-100 text-red-700 px-4 py-3 my-4 w-full md:w-4/5 rounded-md shadow-md flex items-center gap-3"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    ⚠️ <span>{errorMsg}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
