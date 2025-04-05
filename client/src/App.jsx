@@ -3,13 +3,8 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
-import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  RedirectToSignIn,
-} from "@clerk/clerk-react";
 
 import "./App.css";
 import Home from "./pages/Home/Home";
@@ -24,78 +19,62 @@ import Footer from "./components/footer/Footer";
 import AdminSignup from "./pages/admin/AdminSignup";
 import AdminLogin from "./pages/admin/AdminLogin";
 
-// Dashboards (Replace with actual components)
+// Dashboards
 import InvestorDashboard from "./pages/investor/dashboard/InvestorDashboard";
 import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
-
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY; // Ensure this is set in .env
+import InvestorProjects from "./pages/investor/dashboard/investorProjects";
+import InvestorLayout from "./components/investorDashboard/InvestorLayout";
+import ExpenseBreakdown from "./pages/investor/dashboard/expenseBreakdown";
+import PayoutsWithdrawals from "./pages/investor/dashboard/PayoutsWithdrawals";
+import Documents from "./pages/investor/dashboard/Documents";
+import InvestmentPreference from "./pages/investor/dashboard/InvestmentPreference";
+import ProfileSettings from "./pages/investor/dashboard/ProfileSettings";
+import SupportCommunity from "./pages/investor/dashboard/SupportCommunity";
 
 function App() {
+  const location = useLocation();
+  const hideHeaderRoutes = ["/investor-dashboard", "/admin-dashboard"];
+
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
-      <Router>
+    <>
+      {/* Hide the header on investor and admin dashboard routes */}
+      {!hideHeaderRoutes.some((path) => location.pathname.startsWith(path)) && (
         <Topheader />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/company" element={<Company />} />
-          <Route path="/projects" element={<Project />} />
-          <Route path="/how-it-works" element={<Howitworks />} />
-          <Route path="/reach-us" element={<Reachus />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<AdminSignup />} />
-          <Route path="/adminLogin" element={<AdminLogin />} />
+      )}
 
-          {/* Protected Investor Dashboard */}
-          <Route
-            path="/investor-dashboard/*"
-            element={
-              <SignedIn>
-                <InvestorDashboard />
-              </SignedIn>
-            }
-          />
-          <Route
-            path="/investor-dashboard/*"
-            element={
-              <SignedOut>
-                <Navigate to="/login" />
-              </SignedOut>
-            }
-          />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/company" element={<Company />} />
+        <Route path="/projects" element={<Project />} />
+        <Route path="/how-it-works" element={<Howitworks />} />
+        <Route path="/reach-us" element={<Reachus />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/admin" element={<AdminSignup />} />
+        <Route path="/adminLogin" element={<AdminLogin />} />
 
-          {/* Protected Admin Dashboard */}
+        {/* Investor Dashboard Routes */}
+        <Route path="/investor-dashboard" element={<InvestorLayout />}>
+          <Route index element={<InvestorDashboard />} />
+          <Route path="active-projects" element={<InvestorProjects />} />
+          <Route path="expense-breakdown" element={<ExpenseBreakdown />} />
+          <Route path="payouts" element={<PayoutsWithdrawals />} />
+          <Route path="documents" element={<Documents />} />
+          <Route path="profile-settings" element={<ProfileSettings />} />
+          <Route path="support-community" element={<SupportCommunity />} />
           <Route
-            path="/admin-dashboard/*"
-            element={
-              <SignedIn>
-                <AdminDashboard />
-              </SignedIn>
-            }
+            path="investmentPreference"
+            element={<InvestmentPreference />}
           />
-          <Route
-            path="/admin-dashboard/*"
-            element={
-              <SignedOut>
-                <Navigate to="/login" />
-              </SignedOut>
-            }
-          />
+        </Route>
 
-          {/* Redirect unauthenticated users */}
-          <Route
-            path="/dashboard/*"
-            element={
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            }
-          />
-        </Routes>
-        <Footer />
-      </Router>
-    </ClerkProvider>
+        {/* Admin Dashboard Routes */}
+        <Route path="/admin-dashboard/*" element={<AdminDashboard />} />
+      </Routes>
+
+      <Footer />
+    </>
   );
 }
 

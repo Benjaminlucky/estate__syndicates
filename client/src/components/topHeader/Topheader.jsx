@@ -13,7 +13,7 @@ function Topheader() {
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   return (
-    <div className="mainheader__container w-full">
+    <div className="mainheader__container w-full bg-black-900">
       {/* Desktop Navigation */}
       <div className="mainheader__wrapper hidden md:block w-10/12 mx-auto">
         <div className="desktopNav__wrapper my-5">

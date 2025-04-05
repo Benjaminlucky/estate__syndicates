@@ -14,9 +14,14 @@ import { FaXTwitter } from "react-icons/fa6";
 import { FaStar } from "react-icons/fa";
 import { FaShieldAlt } from "react-icons/fa";
 import { HiOutlineChartPie } from "react-icons/hi";
-import { IoRocketSharp } from "react-icons/io5";
+import { FaFile } from "react-icons/fa"; // ✅ Import the correct icon
 import { FaPuzzlePiece } from "react-icons/fa6";
 import { FaRecycle } from "react-icons/fa";
+import { MdSpaceDashboard } from "react-icons/md";
+import { IoRocketSharp } from "react-icons/io5"; // ✅ Correct import
+import { MdSettings } from "react-icons/md"; // ✅ Import the missing icon
+import { MdSupport } from "react-icons/md"; // ✅ Import the missing icon
+import { FiLogOut } from "react-icons/fi";
 
 export const mainNav = [
   {
@@ -316,5 +321,53 @@ export const leadership = [
     avatar: "./assets/leadership5.jpg",
     name: "D.T JACOBS",
     role: "Tech & Media",
+  },
+];
+
+export const investDashLink = [
+  {
+    name: "Overview",
+    link: "/investor-dashboard/",
+    icon: MdSpaceDashboard,
+  },
+  {
+    name: "Active Projects",
+    link: "/investor-dashboard/active-projects",
+    icon: IoRocketSharp,
+  },
+  {
+    name: "Expense Breakdown",
+    link: "/investor-dashboard/expense-breakdown",
+    icon: FaChartPie,
+  },
+  {
+    name: "Payout & Withdrawals",
+    link: "/investor-dashboard/payouts",
+    icon: FaPiggyBank,
+  },
+  {
+    name: "Documents",
+    link: "/investor-dashboard/documents",
+    icon: FaFile,
+  },
+  {
+    name: "Investment Preference",
+    link: "/investor-dashboard/investmentPreference",
+    icon: FaCoins,
+  },
+  {
+    name: "Profile Settings",
+    link: "/investor-dashboard/profile-settings",
+    icon: MdSettings,
+  },
+  {
+    name: "Support & Community",
+    link: "/investor-dashboard/support-community",
+    icon: MdSupport,
+  },
+  {
+    name: "Logout",
+    link: "/logout",
+    icon: FiLogOut,
   },
 ];

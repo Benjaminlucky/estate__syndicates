@@ -10,7 +10,7 @@ import Homeprocess from "../../components/homeprocess/Homeprocess";
 
 function Home() {
   return (
-    <main className="home__container !text-white w-full">
+    <main className="home__container !text-white w-full bg-black-900">
       <div className="home__wrapper w-10/12 mx-auto">
         {/* hero section starts here */}
         <div className="hero__section">

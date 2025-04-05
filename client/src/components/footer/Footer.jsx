@@ -10,7 +10,7 @@ function Footer() {
           <div className="footer__top flex flex-col md:flex-row  justify-center md:justify-between">
             <div className="footer__logo flex justify-center py-8 md:py-0">
               <img
-                src="./assets/eslogo.svg"
+                src="/assets/eslogo.svg"
                 alt="Estate Syndicates Brand Identity"
               />
             </div>

@@ -1,68 +1,57 @@
 import React, { useState } from "react";
-import { SignUp, useSignIn } from "@clerk/clerk-react";
 import { Card } from "flowbite-react";
-import { Checkbox, Button, Label } from "flowbite-react";
-import { FaUserCircle } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { MdEmail } from "react-icons/md";
-import { FaPhoneAlt } from "react-icons/fa";
 import { RiLockPasswordFill } from "react-icons/ri";
-import { use } from "react";
+import { AiOutlineCheckCircle } from "react-icons/ai";
+import { motion } from "framer-motion";
 
 const Login = () => {
-  const { signIn, isLoaded } = useSignIn();
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    emailAddress: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ emailAddress: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isLoaded) return;
-
     setLoading(true);
     setError("");
 
     try {
-      const result = await signIn.create({
-        identifier: formData.emailAddress,
-        password: formData.password,
+      const response = await fetch("http://localhost:5000/investor/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
 
-      if (result.status === "complete") {
-        navigate("/investor-dashboard"); // Redirect after login
-      } else {
-        console.error("Unexpected Clerk Response:", result);
-      }
-    } catch (err) {
-      setError("Invalid email or password");
-      console.error("Login Error:", err);
-    } finally {
+      const data = await response.json();
       setLoading(false);
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        setSuccess(true); // ✅ Show success message
+
+        setTimeout(() => {
+          navigate("/investor-dashboard");
+        }, 2500);
+      } else {
+        setError(data.message || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
+      setLoading(false);
+      setError("An error occurred. Please try again.");
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      await signIn.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/investor-dashboard",
-        redirectUrlComplete: "/investor-dashboard",
-      });
-    } catch (err) {
-      console.error("Google Login Error:", err);
-    }
-  };
   return (
     <main className="signup__section w-full">
       <div className="signup__wrapper w-10/12 mx-auto py-32">
@@ -81,68 +70,88 @@ const Login = () => {
               <div className="right__top"></div>
               <div className="right__buttom">
                 <div className="bottom__content">
-                  <div className="buttom__title">
-                    <h3 className="uppercase text-black-200 text-2xl md:text-4xl font-bold">
-                      Access your Account
-                    </h3>
-                  </div>
-                  <div className="bottom__subtitle">
-                    <p className="text-black-400 font-chivo">
-                      Don't have an account?{" "}
-                      <Link to="/signup" className="text-black-50 underline">
-                        Register
-                      </Link>{" "}
-                    </p>
-                  </div>
-                  <div className="form__container">
-                    <form onSubmit={handleSubmit}>
-                      <div className="form__content w-full md:w-4/5 py-12 font-chivo">
-                        <div className="last__name mt-6">
-                          <label htmlFor="email" className="text-black-300">
-                            Email
-                          </label>
-                          <div className="email flex items-center gap-2 bg-black-500 py-1 px-5 rounded-sm mt-3">
-                            <MdEmail className="text-2xl text-black-300" />
-                            <input
-                              type="email"
-                              placeholder="nnebe@estatesindicates.com"
-                              id="emailAddress"
-                              name="emailAddress"
-                              value={formData.emailAddress}
-                              onChange={handleChange}
-                              className="w-full bg-transparent rounded-sm py-2 focus:ring-0 focus:border-0 focus:outline-0 text-bold"
-                            />
-                          </div>
-                        </div>
+                  <h3 className="uppercase text-black-200 text-2xl md:text-4xl font-bold">
+                    Access your Account
+                  </h3>
+                  <p className="text-black-400 font-chivo">
+                    Don't have an account?{" "}
+                    <Link to="/signup" className="text-black-50 underline">
+                      Register
+                    </Link>
+                  </p>
 
-                        <div className="password mt-6">
-                          <label htmlFor="password" className="text-black-300">
-                            Password
-                          </label>
-                          <div className="password flex items-center gap-2 bg-black-500 py-1 px-5 rounded-sm mt-3">
-                            <RiLockPasswordFill className="text-2xl text-black-300" />
-                            <input
-                              type="password"
-                              id="password"
-                              placeholder="*******"
-                              name="password"
-                              value={formData.password}
-                              onChange={handleChange}
-                              className="w-full bg-transparent rounded-sm py-2 focus:ring-0 focus:border-0 focus:outline-0 text-bold"
-                            />
-                          </div>
-                        </div>
+                  <form
+                    onSubmit={handleSubmit}
+                    className="form__container w-full md:w-4/5 py-12 font-chivo"
+                  >
+                    <label htmlFor="email" className="text-black-300">
+                      Email
+                    </label>
+                    <div className="flex items-center gap-2 bg-black-500 py-1 px-5 rounded-sm mt-3 mb-5">
+                      <MdEmail className="text-2xl text-black-300" />
+                      <input
+                        type="email"
+                        id="emailAddress"
+                        name="emailAddress"
+                        value={formData.emailAddress}
+                        onChange={handleChange}
+                        placeholder="nnebe@estatesindicates.com"
+                        className="w-full bg-transparent rounded-sm py-2 focus:ring-0 focus:border-0 focus:outline-0 text-bold"
+                      />
+                    </div>
 
-                        <button className="w-full bg-golden-600 rounded-sm py-4 mt-6 hover:bg-golden-500 duration-200">
-                          Log In
-                        </button>
-                        <p className="text-black-300 mt-8">or Log In with</p>
-                        <button className="flex items-center gap-2 w-full mt-4 justify-center border-solid border-gray-300 text-white px-4 py-3 rounded-md">
-                          <FcGoogle /> <p>Google</p>
-                        </button>
-                      </div>
-                    </form>
-                  </div>
+                    <label htmlFor="password" className="text-black-300 mt-6">
+                      Password
+                    </label>
+                    <div className="flex items-center gap-2 bg-black-500 py-1 px-5 rounded-sm mt-3">
+                      <RiLockPasswordFill className="text-2xl text-black-300" />
+                      <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="*******"
+                        className="w-full bg-transparent rounded-sm py-2 focus:ring-0 focus:border-0 focus:outline-0 text-bold"
+                      />
+                    </div>
+
+                    <button
+                      className="w-full bg-golden-600 rounded-sm py-4 mt-6 hover:bg-golden-500 duration-200 disabled:opacity-50"
+                      disabled={loading}
+                    >
+                      {loading ? "Logging in..." : "Log In"}
+                    </button>
+
+                    {error && (
+                      <p className="text-red-500 mt-4 text-sm">{error}</p>
+                    )}
+                  </form>
+                  {/* ✅ Success Animation */}
+                  {success && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="bg-green-100 text-green-800 px-4 py-3 w-full md:w-4/5 rounded-md shadow-md my-6 flex items-center gap-3"
+                    >
+                      <motion.div
+                        initial={{ rotate: 0 }}
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 2,
+                          ease: "linear",
+                        }}
+                      >
+                        <AiOutlineCheckCircle className="text-2xl text-green-600" />
+                      </motion.div>
+                      <span className="text-sm md:text-base font-semibold">
+                        Login successful! Redirecting...
+                      </span>
+                    </motion.div>
+                  )}
                 </div>
               </div>
             </div>

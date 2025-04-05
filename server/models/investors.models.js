@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcryptjs"; // Use bcrypt instead of bcryptjs
 
 const investorSchema = new mongoose.Schema(
   {
@@ -16,39 +16,24 @@ const investorSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
       required: true,
-      unique: true, // Ensure phone numbers are unique
+      unique: true,
       trim: true,
     },
     emailAddress: {
       type: String,
       required: true,
-      unique: true, // Ensure unique emails
+      unique: true,
       lowercase: true,
       trim: true,
-      match: [/.+@.+\..+/, "Please enter a valid email address"], // Email validation
+      match: [/.+@.+\..+/, "Please enter a valid email address"],
     },
     password: {
       type: String,
       required: true,
-      minlength: 6, // Enforce minimum password length
+      minlength: 6,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
-
-// 🔐 **Middleware: Hash Password Before Saving**
-investorSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next(); // Only hash if password is modified
-
-  try {
-    const salt = await bcryptjs.genSalt(10);
-    this.password = await bcryptjs.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
 
 export default mongoose.model("Investor", investorSchema);

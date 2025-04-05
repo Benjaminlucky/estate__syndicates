@@ -17,8 +17,8 @@ body {
   text-rendering: optimizeSpeed; /* Improves rendering performance */
   -webkit-font-smoothing: antialiased; /* Smooths text in WebKit browsers */
   font-family: "Cinzel", serif;
-  background-color: #000000;
-  color: white;
+  background-color: #000000 !important; /* Sets a default background color */
+  color: white !important; /* Sets a default text color */
   overflow-x: hidden;
 }
 
