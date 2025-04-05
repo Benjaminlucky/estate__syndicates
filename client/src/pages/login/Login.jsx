@@ -24,7 +24,20 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/investor/login", {
+      const domain = window.location.hostname;
+
+      let apiUrl = "";
+      if (
+        domain === "estatesindicates.com" ||
+        domain === "www.estatesindicates.com"
+      ) {
+        apiUrl = "https://estate-syndicates.onrender.com"; // Production URL
+      } else if (domain === "estatesyndicates.netlify.app") {
+        apiUrl = "https://estate-syndicates.onrender.com"; // Staging or Netlify URL
+      } else {
+        apiUrl = "http://localhost:5000"; // Local development URL
+      }
+      const response = await fetch(`${apiUrl}/investor/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
