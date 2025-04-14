@@ -371,3 +371,40 @@ export const investDashLink = [
     icon: FiLogOut,
   },
 ];
+
+export const statData = [
+  {
+    title: "Total Investment",
+    value: "₦3,755,000.00",
+    buttonText: "View Report",
+    chartData: [
+      { name: "Jan", value: 500000 },
+      { name: "Feb", value: 1200000 },
+      { name: "Mar", value: 2000000 },
+      { name: "Apr", value: 2200000 },
+    ],
+  },
+  {
+    title: "Current Portfolio Value",
+    value: "₦60,768,990.00",
+    buttonText: "View Report",
+    chartData: [
+      { name: "Jan", value: 10000000 },
+      { name: "Feb", value: 35000000 },
+      { name: "Mar", value: 60768990 },
+      { name: "Apr", value: 34768990 },
+    ],
+  },
+  {
+    title: "Pending Returns / Payouts",
+    value: "₦8,120,990.00",
+    buttonText: "View Report",
+    chartData: [
+      { name: "Jan", value: 300000 },
+      { name: "Feb", value: 5000000 },
+      { name: "Mar", value: 8120990 },
+      { name: "Apr", value: 5620990 },
+    ],
+    roi: "12% ROI",
+  },
+];

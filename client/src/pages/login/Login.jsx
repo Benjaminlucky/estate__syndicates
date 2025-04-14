@@ -50,10 +50,11 @@ const Login = () => {
 
       if (response.ok) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("investor", JSON.stringify(data.investor)); // ✅ Save investor details
         setSuccess(true); // ✅ Show success message
 
         setTimeout(() => {
-          navigate("/investor-dashboard");
+          navigate("/investor-dashboard/");
         }, 2500);
       } else {
         setError(data.message || "Login failed. Please try again.");
