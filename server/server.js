@@ -29,15 +29,18 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: [
+      "http://localhost:5173",
+      "https://estatesindicates.com",
+      "https://estate-syndicates.onrender.com",
+    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
+app.options("*", cors()); // <-- IMPORTANT: allows preflight
 
 /* ----------------------------------------------------- */
 /*                 DATABASE CONNECT                      */
