@@ -408,3 +408,103 @@ export const statData = [
     roi: "12% ROI",
   },
 ];
+
+export const dashsummary = [
+  {
+    id: 1,
+    title: "Projects & Investments",
+    total: 8,
+    link: "/investor-dashboard/active-projects",
+  },
+  {
+    id: 2,
+    title: "Projects Updates & Reports",
+    link: "/investor-dashboard/documents",
+  },
+  {
+    id: 3,
+    title: "Monthly / Quarterly Financial Reports",
+    link: "/investor-dashboard/documents",
+  },
+  {
+    id: 4,
+    title: "Construction / Development Milestones",
+    link: "/investor-dashboard/documents",
+  },
+  {
+    id: 5,
+    title: "Operational Expense",
+    link: "/investor-dashboard/expense-breakdown",
+  },
+  {
+    id: 6,
+    title: "Maintainance Cost",
+    link: "/investor-dashboard/expense-breakdown",
+  },
+  {
+    id: 7,
+    title: "Taxes / Legal Fees",
+    link: "/investor-dashboard/expense-breakdown",
+  },
+  {
+    id: 8,
+    title: "Revenue Details",
+    link: "/investor-dashboard/expense-breakdown",
+  },
+];
+
+// src/data.js
+export const projectsData = [
+  {
+    id: 1,
+    title: "Pristine Residences",
+    location: "Lagos, Nigeria",
+    developmentType: "4 Bedroom Bungalows",
+    totalUnits: 50,
+    pricePerUnit: "₦75,000,000",
+    budget: "₦1.3B",
+    image: "/assets/pristine.jpg",
+    soldPercentage: 45, // for progress
+    status: "Active", // Active | Completed | Coming Soon
+    roi: "12%", // ROI badge
+    irr: "9.5%", // IRR badge
+    completionDate: "2026-11-01", // KPI badge
+    shortDescription:
+      "Luxury riverside development focused on sustainable materials and premium amenities.",
+  },
+  {
+    id: 2,
+    title: "Aurora Heights",
+    location: "Abuja, Nigeria",
+    developmentType: "3 Bedroom Apartments",
+    totalUnits: 120,
+    pricePerUnit: "₦45,000,000",
+    budget: "₦5.4B",
+    image: "/assets/blocksflat.jpg",
+    soldPercentage: 68,
+    status: "Active",
+    roi: "15%",
+    irr: "11.0%",
+    completionDate: "2025-08-15",
+    shortDescription:
+      "Transit-oriented development offering high rental yield and mixed-use retail podium.",
+  },
+  {
+    id: 3,
+    title: "Harbor Point",
+    location: "Port Harcourt, Nigeria",
+    developmentType: "Townhouses",
+    totalUnits: 32,
+    pricePerUnit: "₦120,000,000",
+    budget: "₦3.8B",
+    image: "/assets/4bedroom.jpg",
+    soldPercentage: 8,
+    status: "Coming Soon",
+    roi: "10%",
+    irr: "7.8%",
+    completionDate: "2027-04-01",
+    shortDescription:
+      "Exclusive gated community with smart-home integrations and concierge services.",
+  },
+  // add more objects as needed
+];

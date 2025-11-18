@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async"; // ✅ Import HelmetProvider
 import App from "./App";
 import "./index.css";
+import "flowbite";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <HelmetProvider>

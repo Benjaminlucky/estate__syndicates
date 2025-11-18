@@ -1,87 +1,167 @@
-import React from "react";
-import { FaUserGear } from "react-icons/fa6";
-import { MdEmail } from "react-icons/md";
-import { MdPassword } from "react-icons/md";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { api } from "../../lib/api.js";
 
-function AdminSignup() {
+export default function AdminSignup() {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Password toggle states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await api.post("/api/admin/signup", form);
+      navigate("/admin/login");
+    } catch (err) {
+      setError(err.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <main className="adminSingup__section w-full">
-      <div className="admin__wrapper w-10/12 md:w-6/12 mx-auto py-16">
-        <div className="admin__content flex flex-col justify-center">
-          <div className="admin__title">
-            <h3 className="text-xl text-center md:text-4xl uppercase font-bold text-black-300">
-              Create Admin account
-            </h3>
+    <div className="min-h-screen bg-black flex items-center justify-center font-chivo">
+      <div className="w-full max-w-md text-center">
+        <h2 className="text-white text-2xl font-chivo font-bold py-3 tracking-wide">
+          CREATE ADMIN ACCOUNT
+        </h2>
+
+        <p className="text-gray-500 text-sm mb-4">
+          Already have an account?{" "}
+          <Link to="/adminLogin" className="text-yellow-500">
+            Log in
+          </Link>
+        </p>
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 bg-black-700 p-6 rounded-lg"
+        >
+          {error && (
+            <div className="bg-red-600 text-white p-2 text-sm rounded">
+              {error}
+            </div>
+          )}
+
+          {/* First Name */}
+          <div className="relative flex flex-col bg-black-800 rounded-sm">
+            <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              name="firstName"
+              placeholder="First Name"
+              onChange={handleChange}
+              className="w-full text-white pl-10 pr-4 py-3 rounded outline-none"
+              required
+            />
           </div>
-          <div className="form__container mt-4 md:mt-16 w-full md:w-3/5 mx-auto">
-            <form>
-              <div className="form__content font-chivo">
-                <div className="fullName">
-                  <label htmlFor="fullName" className="text-golden-200">
-                    Full Name
-                  </label>
-                  <div className="fullname flex items-center gap-3 mt-3 bg-golden-200 py-3 px-5 rounded-sm">
-                    <FaUserGear className="text-2xl text-golden-600" />
-                    <input
-                      id="fullName"
-                      type="text"
-                      placeholder="Chukwuma Nnebe"
-                      className="bg-transparent w-full focus:outline-none text-sm md:text-xl font-bold text-golden-600"
-                    />
-                  </div>
-                </div>
-                <div className="email mt-8">
-                  <label htmlFor="email" className="text-golden-200">
-                    Email
-                  </label>
-                  <div className="fullname flex items-center gap-3 mt-3 bg-golden-200 py-3 px-5 rounded-sm">
-                    <MdEmail className="text-2xl text-golden-600" />
-                    <input
-                      id="email"
-                      type="email"
-                      placeholder="admin@estatesindicates.com"
-                      className="bg-transparent w-full focus:outline-none text-sm md:text-xl font-bold text-golden-600"
-                    />
-                  </div>
-                </div>
-                <div className="email mt-8">
-                  <label htmlFor="password" className="text-golden-200">
-                    Password
-                  </label>
-                  <div className="password flex items-center gap-3 mt-3 bg-golden-200 py-3 px-5 rounded-sm">
-                    <MdPassword className="text-2xl text-golden-600" />
-                    <input
-                      id="password"
-                      type="password"
-                      placeholder="*******"
-                      className="bg-transparent w-full focus:outline-none text-sm md:text-xl font-bold text-golden-600"
-                    />
-                  </div>
-                </div>
-                <div className="confirmpassword mt-8">
-                  <label htmlFor="confirmPassword" className="text-golden-200">
-                    Confirm Password
-                  </label>
-                  <div className="confirmPassword flex items-center gap-3 mt-3 bg-golden-200 py-3 px-5 rounded-sm">
-                    <MdPassword className="text-2xl text-golden-600" />
-                    <input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="*******"
-                      className="bg-transparent w-full focus:outline-none text-sm md:text-xl font-bold text-golden-600"
-                    />
-                  </div>
-                </div>
-                <button className="mt-16 bg-golden-600 w-full py-4 text-sm md:text-xl rounded-sm text-golden-900 font-bold hover:bg-golden-700">
-                  Create Admin Account
-                </button>
-              </div>
-            </form>
+
+          {/* Last Name */}
+          <div className="relative flex flex-col bg-black-800 rounded-sm">
+            <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              name="lastName"
+              placeholder="Last Name"
+              onChange={handleChange}
+              className="w-full text-white pl-10 pr-4 py-3 rounded outline-none"
+              required
+            />
           </div>
-        </div>
+
+          {/* Email */}
+          <div className="relative flex flex-col bg-black-800 rounded-sm">
+            <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              onChange={handleChange}
+              className="w-full text-white pl-10 pr-4 py-3 rounded outline-none"
+              required
+            />
+          </div>
+
+          {/* Password */}
+          <div className="relative flex flex-col bg-black-800 rounded-sm">
+            <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              onChange={handleChange}
+              className="w-full text-white pl-10 pr-10 py-3 rounded outline-none"
+              required
+            />
+
+            {/* Toggle Icon */}
+            <span
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="relative flex flex-col bg-black-800 rounded-sm">
+            <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              onChange={handleChange}
+              className="w-full text-white pl-10 pr-10 py-3 rounded outline-none"
+              required
+            />
+
+            {/* Toggle Icon */}
+            <span
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+            </span>
+          </div>
+
+          {/* Submit */}
+          <button
+            disabled={loading}
+            className="w-full bg-golden-600 hover:bg-golden-800 text-black font-semibold py-3 rounded"
+          >
+            {loading ? "Creating..." : "Create account"}
+          </button>
+        </form>
       </div>
-    </main>
+    </div>
   );
 }
-
-export default AdminSignup;

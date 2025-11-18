@@ -12,11 +12,11 @@ import { Button } from "../../components/ui/button";
 
 export default function StatCard({ title, value, chartData, buttonText, roi }) {
   return (
-    <Card className="bg-white dark:bg-black text-black dark:text-white">
+    <Card className="bg-white watch:w-full dark:bg-black text-black dark:text-white">
       <CardContent className="p-4 space-y-4">
         {/* Title and Button */}
-        <div className="flex justify-between items-center">
-          <p className="text-sm font-medium">{title}</p>
+        <div className="flex  justify-between items-center">
+          <p className=" font-medium ">{title}</p>
           {buttonText && (
             <Button
               size="sm"
@@ -29,7 +29,7 @@ export default function StatCard({ title, value, chartData, buttonText, roi }) {
 
         {/* Value and ROI */}
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">{value}</h2>
+          <h2 className="text-2xl  font-bold">{value}</h2>
           {roi && (
             <span className="text-sm font-semibold text-amber-600">{roi}</span>
           )}

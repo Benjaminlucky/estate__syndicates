@@ -30,17 +30,30 @@ import Documents from "./pages/investor/dashboard/Documents";
 import InvestmentPreference from "./pages/investor/dashboard/InvestmentPreference";
 import ProfileSettings from "./pages/investor/dashboard/ProfileSettings";
 import SupportCommunity from "./pages/investor/dashboard/SupportCommunity";
+import Projects from "./pages/admin/dashboard/Projects";
+import DashboardLayout from "./pages/admin/dashboard/DashboardLayout";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   const location = useLocation();
-  const hideHeaderRoutes = ["/investor-dashboard", "/admin-dashboard"];
+
+  // Define routes where header and footer should be hidden
+  const hideHeaderFooterRoutes = [
+    "/investor-dashboard",
+    "/admin-dashboard",
+    "/admin",
+    "/dashboard",
+    "/adminLogin",
+  ];
+
+  const shouldHideHeaderFooter = hideHeaderFooterRoutes.some((path) =>
+    location.pathname.startsWith(path)
+  );
 
   return (
     <>
-      {/* Hide the header on investor and admin dashboard routes */}
-      {!hideHeaderRoutes.some((path) => location.pathname.startsWith(path)) && (
-        <Topheader />
-      )}
+      {!shouldHideHeaderFooter && <Topheader />}
+      <ToastContainer position="top-right" theme="dark" />
 
       <Routes>
         {/* Public Routes */}
@@ -51,8 +64,8 @@ function App() {
         <Route path="/reach-us" element={<Reachus />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/admin" element={<AdminSignup />} />
-        <Route path="/adminLogin" element={<AdminLogin />} />
+        <Route path="/admin/signup" element={<AdminSignup />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* Investor Dashboard Routes */}
         <Route path="/investor-dashboard/" element={<InvestorLayout />}>
@@ -70,10 +83,14 @@ function App() {
         </Route>
 
         {/* Admin Dashboard Routes */}
-        <Route path="/admin-dashboard/*" element={<AdminDashboard />} />
+        {/* Admin Dashboard Routes */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="projects" element={<Projects />} />
+        </Route>
       </Routes>
 
-      <Footer />
+      {!shouldHideHeaderFooter && <Footer />}
     </>
   );
 }
