@@ -1,5 +1,5 @@
 import React from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import Hero from "../../components/hero/Hero";
 import Homeintro from "../../components/homeIntro/Homeintro";
 import Homechoose from "../../components/homeChoose/Homechoose";

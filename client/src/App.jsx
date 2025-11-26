@@ -43,7 +43,7 @@ function App() {
     "/admin-dashboard",
     "/admin",
     "/dashboard",
-    "/adminLogin",
+    "/admin/login",
   ];
 
   const shouldHideHeaderFooter = hideHeaderFooterRoutes.some((path) =>
