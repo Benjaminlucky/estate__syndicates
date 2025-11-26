@@ -11,8 +11,7 @@ import {
   FaChartLine,
   FaCalendarAlt,
 } from "react-icons/fa";
-import { projectsData } from "../../../../data.js";
-import axios from "axios";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Spinner } from "flowbite-react";
 import "flowbite";
@@ -23,75 +22,113 @@ import { api } from "../../../lib/api.js";
 /* -------------------------------------------------------------------------- */
 
 export default function Projects() {
-  const [loading, setLoading] = useState(true);
-  const [projects, setProjects] = useState([]);
-
-  // modal state
+  // modal & form state
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(defaultForm());
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-
   const [previewImage, setPreviewImage] = useState("");
 
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        setLoading(true);
+  const queryClient = useQueryClient();
+  const SESSION_KEY = "admin_projects";
 
-        const res = await api.get("/api/projects");
+  const fetchProjects = async () => {
+    const res = await api.get("/api/projects");
+    return res.data?.projects ?? [];
+  };
 
-        // Debug log (helps find backend issues)
-        console.log("Loaded projects:", res.data);
+  const { data: projects = [], isLoading } = useQuery({
+    queryKey: ["admin_projects"],
+    queryFn: fetchProjects,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 30 * 60 * 1000, // 30 minutes
+  });
 
-        // Safely extract projects
-        const projects = res?.data?.projects ?? [];
+  /* ---------------- input handlers ---------------- */
+  const handleFormattedNumberInput = (name, value) => {
+    const numericValue = String(value).replace(/\D/g, "");
+    const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    setForm((prev) => ({ ...prev, [name]: formattedValue }));
+  };
 
-        setProjects(projects);
-      } catch (err) {
-        console.error("Error loading projects:", err);
-        toast.error("Failed to load projects.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleTextChange = (name, value) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-    loadProjects();
-  }, []);
-
-  const updateField = (name, value) =>
-    setForm((p) => ({ ...p, [name]: value }));
-
+  // store file object in state and set preview
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = () => {
-      setPreviewImage(reader.result);
-      updateField("image", reader.result);
-    };
+    reader.onload = () => setPreviewImage(reader.result);
     reader.readAsDataURL(file);
+
+    setForm((prev) => ({ ...prev, image: file }));
   };
 
-  const validateForm = (form) => {
+  /* ---------------- validation & submit ---------------- */
+  const removeCommas = (value) => {
+    if (value === null || value === undefined || value === "") return "";
+    return String(value).replace(/,/g, "");
+  };
+
+  const validateForm = (formValues) => {
     const e = {};
-    if (!form.title?.trim()) e.title = "Title is required";
-    if (!form.location?.trim()) e.location = "Location is required";
-    if (!form.developmentType?.trim())
+    if (!formValues.title?.trim()) e.title = "Title is required";
+    if (!formValues.location?.trim()) e.location = "Location is required";
+    if (!formValues.developmentType?.trim())
       e.developmentType = "Development type is required";
-    if (form.totalUnits && isNaN(Number(form.totalUnits)))
+
+    const totalUnitsClean = removeCommas(formValues.totalUnits);
+    const priceClean = removeCommas(formValues.pricePerUnit);
+
+    if (formValues.totalUnits && isNaN(Number(totalUnitsClean)))
       e.totalUnits = "Must be a number";
-    if (form.pricePerUnit && isNaN(Number(form.pricePerUnit)))
+    if (formValues.pricePerUnit && isNaN(Number(priceClean)))
       e.pricePerUnit = "Must be a number";
-    // add other validations as needed
+
     return e;
   };
 
-  const submitProject = async (e) => {
-    e.preventDefault();
+  const mutation = useMutation({
+    mutationFn: async (formData) => {
+      const res = await api.post("/api/projects", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
+    },
+    onSuccess: (created) => {
+      toast.success("Project Created Successfully!");
+      // Prepend to react-query cache
+      queryClient.setQueryData(["admin_projects"], (old = []) => [
+        created,
+        ...old,
+      ]);
 
-    if (submitting) return; // ⛔ Prevent double clicks
+      // Update sessionStorage as well (store full object)
+      try {
+        const old = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "[]");
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify([created, ...old]));
+      } catch (err) {
+        console.warn("Failed to update sessionStorage after create:", err);
+      }
+
+      setForm(defaultForm());
+      setPreviewImage("");
+      setShowModal(false);
+    },
+    onError: (err) => {
+      setErrors({
+        _global: err?.response?.data?.message || "Failed to create project",
+      });
+    },
+    onSettled: () => setSubmitting(false),
+  });
+
+  const submitProject = (e) => {
+    e.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
 
     const validation = validateForm(form);
@@ -101,30 +138,26 @@ export default function Projects() {
       return;
     }
 
-    try {
-      setErrors({});
+    // Build FormData
+    const formData = new FormData();
+    formData.append("title", form.title);
+    formData.append("location", form.location);
+    formData.append("developmentType", form.developmentType);
+    formData.append("totalUnits", removeCommas(form.totalUnits));
+    formData.append("pricePerUnit", removeCommas(form.pricePerUnit));
+    formData.append("budget", removeCommas(form.budget));
+    formData.append("soldPercentage", form.soldPercentage || "");
+    formData.append("status", form.status);
+    formData.append("roi", form.roi || "");
+    formData.append("irr", form.irr || "");
+    formData.append("completionDate", form.completionDate || "");
+    formData.append("shortDescription", form.shortDescription || "");
 
-      const res = await api.post("/api/projects", form);
-      const created = res.data;
-
-      // Add to UI
-      setProjects((prev) => [created, ...prev]);
-
-      // Reset
-      setForm(defaultForm());
-      setPreviewImage("");
-      setShowModal(false);
-
-      // OPTIONAL: toast
-      toast.success("Project Created Successfully!");
-    } catch (err) {
-      console.error("Create project error:", err);
-      setErrors({
-        _global: err.response?.data?.message || "Failed to create project",
-      });
+    if (form.image instanceof File) {
+      formData.append("image", form.image);
     }
 
-    setSubmitting(false);
+    mutation.mutate(formData);
   };
 
   return (
@@ -135,7 +168,8 @@ export default function Projects() {
           onClose={() => setShowModal(false)}
           onSubmit={submitProject}
           form={form}
-          updateField={updateField}
+          handleTextChange={handleTextChange}
+          handleFormattedNumberInput={handleFormattedNumberInput}
           previewImage={previewImage}
           handleImageUpload={handleImageUpload}
           errors={errors}
@@ -160,7 +194,7 @@ export default function Projects() {
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-        {loading
+        {isLoading
           ? Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)
           : projects.map((project) => (
               <ProjectCard key={project._id} project={project} />
@@ -188,7 +222,7 @@ function defaultForm() {
     irr: "",
     completionDate: "",
     shortDescription: "",
-    image: "",
+    image: "", // file or URL (for existing records)
   };
 }
 
@@ -200,7 +234,8 @@ function AddProjectModal({
   onClose,
   onSubmit,
   form,
-  updateField,
+  handleTextChange,
+  handleFormattedNumberInput,
   previewImage,
   handleImageUpload,
   errors = {},
@@ -235,16 +270,15 @@ function AddProjectModal({
               label="Project Title"
               name="title"
               value={form.title}
-              onChange={(e) => updateField("title", e.target.value)}
+              onChange={(e) => handleTextChange("title", e.target.value)}
               error={errors.title}
-              className="!border-white"
             />
 
             <Input
               label="Location"
               name="location"
               value={form.location}
-              onChange={(e) => updateField("location", e.target.value)}
+              onChange={(e) => handleTextChange("location", e.target.value)}
               error={errors.location}
             />
 
@@ -252,14 +286,18 @@ function AddProjectModal({
               label="Development Type"
               name="developmentType"
               value={form.developmentType}
-              onChange={(e) => updateField("developmentType", e.target.value)}
+              onChange={(e) =>
+                handleTextChange("developmentType", e.target.value)
+              }
             />
 
             <Textarea
               label="Short Description"
               name="shortDescription"
               value={form.shortDescription}
-              onChange={(e) => updateField("shortDescription", e.target.value)}
+              onChange={(e) =>
+                handleTextChange("shortDescription", e.target.value)
+              }
               error={errors.shortDescription}
             />
           </div>
@@ -274,24 +312,34 @@ function AddProjectModal({
               <Input
                 label="Total Units"
                 name="totalUnits"
-                type="number"
+                type="text"
                 value={form.totalUnits}
-                onChange={(e) => updateField("totalUnits", e.target.value)}
+                onChange={(e) =>
+                  handleFormattedNumberInput("totalUnits", e.target.value)
+                }
+                error={errors.totalUnits}
               />
-
               <Input
                 label="Price Per Unit"
                 name="pricePerUnit"
+                type="text"
                 value={form.pricePerUnit}
-                onChange={(e) => updateField("pricePerUnit", e.target.value)}
+                onChange={(e) =>
+                  handleFormattedNumberInput("pricePerUnit", e.target.value)
+                }
+                error={errors.pricePerUnit}
               />
             </div>
 
             <Input
               label="Project Budget"
               name="budget"
+              type="text"
               value={form.budget}
-              onChange={(e) => updateField("budget", e.target.value)}
+              onChange={(e) =>
+                handleFormattedNumberInput("budget", e.target.value)
+              }
+              error={errors.budget}
             />
           </div>
 
@@ -307,7 +355,7 @@ function AddProjectModal({
                 name="status"
                 options={["Coming Soon", "Active", "Completed"]}
                 value={form.status}
-                onChange={(e) => updateField("status", e.target.value)}
+                onChange={(e) => handleTextChange("status", e.target.value)}
               />
 
               <Input
@@ -315,7 +363,9 @@ function AddProjectModal({
                 name="soldPercentage"
                 type="number"
                 value={form.soldPercentage}
-                onChange={(e) => updateField("soldPercentage", e.target.value)}
+                onChange={(e) =>
+                  handleTextChange("soldPercentage", e.target.value)
+                }
               />
 
               <Input
@@ -323,7 +373,9 @@ function AddProjectModal({
                 name="completionDate"
                 type="date"
                 value={form.completionDate}
-                onChange={(e) => updateField("completionDate", e.target.value)}
+                onChange={(e) =>
+                  handleTextChange("completionDate", e.target.value)
+                }
               />
             </div>
 
@@ -332,18 +384,18 @@ function AddProjectModal({
                 label="ROI (%)"
                 name="roi"
                 value={form.roi}
-                onChange={(e) => updateField("roi", e.target.value)}
+                onChange={(e) => handleTextChange("roi", e.target.value)}
               />
               <Input
                 label="IRR (%)"
                 name="irr"
                 value={form.irr}
-                onChange={(e) => updateField("irr", e.target.value)}
+                onChange={(e) => handleTextChange("irr", e.target.value)}
               />
             </div>
           </div>
 
-          {/* MEDIA TAB — OPTION 3 */}
+          {/* MEDIA */}
           <div className="space-y-4 pt-4 border-t border-gray-700 pb-6">
             <h3 className="text-lg font-bold text-golden-200">Project Image</h3>
 
@@ -415,19 +467,9 @@ function AddProjectModal({
 /*                               REUSABLE INPUTS                               */
 /* -------------------------------------------------------------------------- */
 
-// Shared wrapper base classes for normal / focus / error states
 const WRAPPER_BASE = "group/field w-full rounded-md bg-black-700 transition";
 
-function Input({
-  label,
-  name,
-  type = "text",
-  value,
-  onChange,
-  className = "",
-  error, // string | undefined
-  placeholder = "",
-}) {
+function Input({ label, name, type = "text", value, onChange, error }) {
   const wrapperBorderClass = error
     ? "border border-red-400"
     : "border border-gray-200";
@@ -438,26 +480,21 @@ function Input({
   return (
     <label className="block w-full">
       <p className="text-sm text-gray-300 mb-1">{label}</p>
-
-      <div
-        className={`${WRAPPER_BASE} ${wrapperBorderClass} ${focusClasses} ${className}`}
-      >
+      <div className={`${WRAPPER_BASE} ${wrapperBorderClass} ${focusClasses}`}>
         <input
           type={type}
           name={name}
           value={value}
           onChange={onChange}
-          placeholder={placeholder}
           className="w-full bg-transparent outline-none px-3 py-2 text-sm text-white"
         />
       </div>
-
       {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
     </label>
   );
 }
 
-function Textarea({ label, name, value, onChange, error, placeholder = "" }) {
+function Textarea({ label, name, value, onChange, error }) {
   const wrapperBorderClass = error
     ? "border border-red-400"
     : "border border-gray-200";
@@ -468,18 +505,15 @@ function Textarea({ label, name, value, onChange, error, placeholder = "" }) {
   return (
     <label className="block w-full">
       <p className="text-sm text-gray-300 mb-1">{label}</p>
-
       <div className={`${WRAPPER_BASE} ${wrapperBorderClass} ${focusClasses}`}>
         <textarea
           name={name}
           rows={4}
           value={value}
           onChange={onChange}
-          placeholder={placeholder}
           className="w-full bg-transparent outline-none px-3 py-2 text-sm text-white resize-none"
         />
       </div>
-
       {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
     </label>
   );
@@ -496,7 +530,6 @@ function Select({ label, name, options, value, onChange, error }) {
   return (
     <label className="block w-full">
       <p className="text-sm text-gray-300 mb-1">{label}</p>
-
       <div className={`${WRAPPER_BASE} ${wrapperBorderClass} ${focusClasses}`}>
         <select
           name={name}
@@ -511,7 +544,6 @@ function Select({ label, name, options, value, onChange, error }) {
           ))}
         </select>
       </div>
-
       {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
     </label>
   );
@@ -541,6 +573,11 @@ function CardSkeleton() {
 /* -------------------------------------------------------------------------- */
 
 function ProjectCard({ project }) {
+  const formatWithCommas = (num) => {
+    if (num === null || num === undefined || num === "") return "—";
+    return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   const {
     title,
     location,
@@ -591,6 +628,21 @@ function ProjectCard({ project }) {
       month: "short",
     });
 
+  // Placeholder SVG data URI for broken images
+  const placeholderDataUri = (label = "No image") =>
+    `data:image/svg+xml;utf8,${encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><rect width='100%' height='100%' fill='#111827'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#9CA3AF' font-family='Arial' font-size='22'>${label}</text></svg>`
+    )}`;
+
+  // safe src: if image is falsy use placeholder
+  const safeSrc = image
+    ? image.replace("/upload/", "/upload/f_auto,q_auto/")
+    : placeholderDataUri(title || "No image");
+
+  const handleImgError = (e) => {
+    e.target.src = placeholderDataUri(title || "No image");
+  };
+
   return (
     <article
       className={`relative bg-black-700/60 border border-black-600 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg transition-all duration-450 transform ${
@@ -638,8 +690,9 @@ function ProjectCard({ project }) {
       {/* IMAGE */}
       <div className="relative w-full h-56 overflow-hidden">
         <img
-          src={image}
+          src={safeSrc}
           alt={title}
+          onError={handleImgError}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
@@ -681,8 +734,11 @@ function ProjectCard({ project }) {
         </p>
 
         <div className="mt-4 grid grid-cols-2 gap-4 text-sm text-gray-300">
-          <SmallInfo label="Units" value={totalUnits} />
-          <SmallInfo label="Price / Unit" value={pricePerUnit} />
+          <SmallInfo label="Units" value={formatWithCommas(totalUnits)} />
+          <SmallInfo
+            label="Price / Unit"
+            value={formatWithCommas(pricePerUnit)}
+          />
           <SmallInfo
             className="col-span-2"
             label="Development Type"
@@ -715,7 +771,9 @@ function ProjectCard({ project }) {
 
           <div className="w-36">
             <div className="bg-black rounded-xl px-4 py-2 border border-gray-700 shadow-inner text-right">
-              <div className="text-lg font-bold text-golden-300">{budget}</div>
+              <div className="text-lg font-bold text-golden-300">
+                {formatWithCommas(budget)}
+              </div>
               <div className="text-[10px] text-gray-400">Project Budget</div>
             </div>
           </div>
@@ -745,7 +803,6 @@ function MenuButton({ icon, label, className = "" }) {
     </button>
   );
 }
-
 function Badge({ label }) {
   return (
     <div className="bg-black/60 border border-gray-700 px-3 py-1 rounded-full text-xs text-gray-200">
@@ -753,7 +810,6 @@ function Badge({ label }) {
     </div>
   );
 }
-
 function SmallInfo({ label, value, className = "" }) {
   return (
     <div className={className}>

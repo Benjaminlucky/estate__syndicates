@@ -19,7 +19,11 @@ const ProjectSchema = new mongoose.Schema(
     irr: { type: String },
     completionDate: { type: Date },
     shortDescription: { type: String },
-    image: { type: String }, // base64 or URL
+    image: {
+      type: String,
+      required: false,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

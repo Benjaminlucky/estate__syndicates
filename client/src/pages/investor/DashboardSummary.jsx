@@ -7,7 +7,7 @@ export default function DashboardSummary() {
   return (
     <>
       {/* Stat Cards Grid */}
-      <div className="grid grid-cols-1 watch:grid-cols-1 watch:w-full  sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 ">
+      <div className="grid grid-cols-1 watch:grid-cols-1 watch:w-full bg-black-900  sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 ">
         {statData.map((item, index) => (
           <StatCard
             key={index}
@@ -28,9 +28,9 @@ export default function DashboardSummary() {
               <Link
                 to={item.link}
                 key={index}
-                className={`shadow-sm py-8 px-8 watch:py-4 watch:px-2 rounded-sm text-center flex justify-center items-center ${
+                className={`shadow-sm min-h-[250px] py-8 px-8 watch:py-4 watch:px-2 rounded-sm text-center !text-xl flex justify-center items-center ${
                   index === 0
-                    ? "bg-golden-50 text-black-500"
+                    ? "bg-golden-50 text-black-500 !text-2xl"
                     : index === 1
                     ? "bg-golden-100 text-black-500"
                     : index === 2
@@ -52,7 +52,7 @@ export default function DashboardSummary() {
                   <span className="total text-4xl watch:text-lg">
                     {item.total}
                   </span>
-                  <span className="title text-xl watch:text-sm mt-1">
+                  <span className="title text-2xl watch:text-sm mt-1">
                     {item.title}
                   </span>
                 </div>

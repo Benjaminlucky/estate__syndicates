@@ -3,11 +3,17 @@ import Project from "../models/Project.js";
 // CREATE
 export const createProject = async (req, res) => {
   try {
-    const project = await Project.create(req.body);
-    return res.status(201).json({ success: true, project });
+    const imageUrl = req.file ? req.file.path : null; // Cloudinary URL
+
+    const project = await Project.create({
+      ...req.body,
+      image: imageUrl, // store only URL
+    });
+
+    res.status(201).json({ success: true, project });
   } catch (err) {
     console.error("CREATE ERROR:", err);
-    return res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 

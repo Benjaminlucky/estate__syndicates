@@ -11,7 +11,7 @@ const InvestorLayout = () => {
       <Aside width="w-[260px]" />
 
       {/* Main Content */}
-      <div className="flex-1 p-4 bg-gray-100 text-black-900">
+      <div className="flex-1 p-4 bg-black-800 text-black-900">
         <Outlet />
       </div>
     </div>

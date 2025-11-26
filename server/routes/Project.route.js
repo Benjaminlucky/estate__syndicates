@@ -7,10 +7,11 @@ import {
   updateProject,
   deleteProject,
 } from "../controllers/Projects.controller.js";
+import upload from "../middlewares/upload.js";
 
 const router = Router();
 
-router.post("/", createProject);
+router.post("/projects", upload.single("image"), createProject);
 router.get("/", getProjects);
 router.get("/:id", getProjectById);
 router.put("/:id", updateProject);

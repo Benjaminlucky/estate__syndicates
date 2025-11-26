@@ -1,74 +1,97 @@
+// server/controllers/investor.controller.js
 import Investor from "../models/investors.models.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-dotenv.config(); // Load environment variables from .env file
+dotenv.config();
 
-// Controller for creating a new investor
+/* ============================================================================
+   Utility: Generate JWT
+============================================================================ */
+const generateToken = (investor) => {
+  return jwt.sign(
+    {
+      id: investor._id,
+      emailAddress: investor.emailAddress,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
 
+/* ============================================================================
+   CONTROLLER → CREATE INVESTOR (SIGNUP)
+============================================================================ */
 export const createInvestor = async (req, res) => {
   const { firstName, lastName, phoneNumber, emailAddress, password } = req.body;
-  console.log("Plain text password before hashing:", password);
 
   try {
-    // check if the email or phone already exists
-    const existingInvestor = await Investor.findOne({
-      $or: [{ emailAddress }, { phoneNumber }],
-    });
-    if (existingInvestor) {
-      return res
-        .status(400)
-        .json({ message: "Email or phone number already exists" });
+    if (!firstName || !lastName || !phoneNumber || !emailAddress || !password) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    console.log("Hashed password:", hashedPassword);
+    const email = emailAddress.toLowerCase().trim();
 
-    // Create a new Investor instance
+    const existingInvestor = await Investor.findOne({
+      $or: [{ emailAddress: email }, { phoneNumber }],
+    });
+
+    if (existingInvestor) {
+      return res.status(400).json({
+        message: "Email or phone number already exists",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newInvestor = new Investor({
       firstName,
       lastName,
       phoneNumber,
-      emailAddress,
+      emailAddress: email,
       password: hashedPassword,
     });
 
-    // save the investor to the database
     await newInvestor.save();
 
-    // Generate a JWT token
-    const token = jwt.sign(
-      { id: newInvestor._id, emailAddress: newInvestor.emailAddress }, // payload
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" } // Token expiration time
-    );
+    const token = generateToken(newInvestor);
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Investor created successfully",
       token,
       investor: {
         id: newInvestor._id,
-        firstName: newInvestor.firstName,
-        lastName: newInvestor.lastName,
-        phoneNumber: newInvestor.phoneNumber,
-        emailAddress: newInvestor.emailAddress,
+        firstName,
+        lastName,
+        phoneNumber,
+        emailAddress: email,
       },
     });
   } catch (error) {
     console.error("Error creating investor:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
-//controller for investor login
-
+/* ============================================================================
+   CONTROLLER → LOGIN INVESTOR
+============================================================================ */
 export const loginInvestor = async (req, res) => {
   const { emailAddress, password } = req.body;
 
   try {
-    const existingInvestor = await Investor.findOne({ emailAddress });
-    // check if password is correct
+    if (!emailAddress || !password) {
+      return res.status(400).json({ message: "Email and password required" });
+    }
+
+    const email = emailAddress.toLowerCase().trim();
+
+    const existingInvestor = await Investor.findOne({ emailAddress: email });
+
+    if (!existingInvestor) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
     const isPasswordValid = await bcrypt.compare(
       password,
       existingInvestor.password
@@ -78,15 +101,10 @@ export const loginInvestor = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Generate a JWT token
-    const token = jwt.sign(
-      { id: existingInvestor._id, emailAddress: existingInvestor.emailAddress }, // payload
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" } // Token expiration time
-    );
+    const token = generateToken(existingInvestor);
 
-    res.status(200).json({
-      message: "Login Successful",
+    return res.status(200).json({
+      message: "Login successful",
       token,
       investor: {
         id: existingInvestor._id,
@@ -98,6 +116,6 @@ export const loginInvestor = async (req, res) => {
     });
   } catch (error) {
     console.error("Error logging in investor:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };

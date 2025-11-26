@@ -58,6 +58,7 @@ mongoose
 app.use("/investor", investorRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/projects", projectsRoutes);
+app.use("/uploads", express.static("uploads"));
 
 /* ----------------------------------------------------- */
 /*    OPTIONAL: Catch-all for production deployments     */
