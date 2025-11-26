@@ -1,4 +1,3 @@
-// routes/Project.route.js
 import { Router } from "express";
 import {
   createProject,
@@ -11,10 +10,11 @@ import upload from "../middlewares/upload.js";
 
 const router = Router();
 
-router.post("/projects", upload.single("image"), createProject);
-router.get("/", getProjects);
-router.get("/:id", getProjectById);
-router.put("/:id", updateProject);
-router.delete("/:id", deleteProject);
+// RESTful routes
+router.post("/", upload.single("image"), createProject); // Create
+router.get("/", getProjects); // Read all
+router.get("/:id", getProjectById); // Read one
+router.put("/:id", updateProject); // Update
+router.delete("/:id", deleteProject); // Delete
 
 export default router;
