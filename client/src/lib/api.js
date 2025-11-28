@@ -6,19 +6,20 @@ let BASE_URL = "";
 /* ---------------------------------------------
    LOCAL DEVELOPMENT (Vite on port 5173)
 ---------------------------------------------- */
-if (origin.includes("localhost:5173")) {
-  BASE_URL = "http://localhost:5000"; // backend
+if (origin.includes("localhost:5173") || origin.includes("127.0.0.1:5173")) {
+  BASE_URL = "http://localhost:5000"; // local backend
 } else if (
   /* ---------------------------------------------
-   PRODUCTION LIVE WEBSITES (frontend)
+   PRODUCTION LIVE WEBSITE
 ---------------------------------------------- */
-  origin.includes("estatesindicates.com") ||
-  origin.includes("estatesyndicates.netlify.app")
+  origin.includes("estatesindicates.com") || // main domain
+  origin.includes("www.estatesindicates.com") || // www version
+  origin.includes("estatesyndicates.netlify.app") // Netlify (if used)
 ) {
-  BASE_URL = "https://estate-syndicates.onrender.com"; // backend
+  BASE_URL = "https://estate-syndicates.onrender.com"; // backend on Render
 } else {
   /* ---------------------------------------------
-   FALLBACK (safe)
+   FALLBACK
 ---------------------------------------------- */
   BASE_URL = "https://estate-syndicates.onrender.com";
 }
