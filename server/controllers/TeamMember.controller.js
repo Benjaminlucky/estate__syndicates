@@ -3,27 +3,25 @@ import crypto from "crypto";
 import TeamMember from "../models/TeamMember.js";
 import nodemailer from "nodemailer";
 
+// Email configuration (replace with your SMTP details)
+// const transporter = nodemailer.createTransport({
+//   host: process.env.SMTP_HOST,
+//   port: process.env.SMTP_PORT,
+//   secure: false,
+//   auth: {
+//     user: process.env.SMTP_USER,
+//     pass: process.env.SMTP_PASS,
+//   },
+// });
+
 // Generate random password
 const generatePassword = () => {
   return crypto.randomBytes(8).toString("hex");
 };
 
-// ============================================
-// DYNAMIC FRONTEND URL HELPER
-// ============================================
-const getFrontendUrl = () => {
-  const nodeEnv = process.env.NODE_ENV;
+// Send credentials email
+// utils/sendCredentialsEmail.js
 
-  if (nodeEnv === "development") {
-    return process.env.FRONTEND_URL_DEV || "http://localhost:5173";
-  } else {
-    return process.env.FRONTEND_URL_PROD || "https://estatesindicates.com";
-  }
-};
-
-// ============================================
-// SEND CREDENTIALS EMAIL
-// ============================================
 export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -34,10 +32,6 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
       pass: process.env.SMTP_PASS,
     },
   });
-
-  // Get dynamic frontend URL based on environment
-  const frontendUrl = getFrontendUrl();
-  const loginUrl = `${frontendUrl}/team/login`;
 
   const htmlMessage = `
   <div style="
@@ -92,7 +86,7 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
           Please log in and change your password immediately for security purposes.
         </p>
 
-        <a href="${loginUrl}"
+        <a href="https://estatesindicates.com/"
           style="
             display:inline-block;
             background:#2563eb;
@@ -121,23 +115,16 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
   `;
 
   const mailOptions = {
-    from: `"Estates Indicates" <${
-      process.env.SMTP_USER || "info@estatesindicates.com"
-    }>`,
+    from: `"Estates Indicates" <info@estatesindicates.com>`,
     to: email,
     subject: "Your Estates Indicates Account Credentials",
     html: htmlMessage,
   };
 
-  // Log the URL being used (helpful for debugging)
-  console.log(`📧 Sending email with login URL: ${loginUrl}`);
-
   return transporter.sendMail(mailOptions);
 };
 
-// ============================================
 // CREATE TEAM MEMBER
-// ============================================
 export const createTeamMember = async (req, res) => {
   try {
     const { fullName, email, phone, role, employmentType, assignedProjects } =
@@ -166,12 +153,11 @@ export const createTeamMember = async (req, res) => {
       isActive: true,
     });
 
-    // Send credentials email with dynamic URL
+    // Send credentials email
     try {
       await sendCredentialsEmail(email, fullName, temporaryPassword);
-      console.log(`✅ Credentials email sent to: ${email}`);
     } catch (emailError) {
-      console.error("❌ Email sending failed:", emailError);
+      console.error("Email sending failed:", emailError);
       // Don't fail the request if email fails
     }
 
@@ -189,9 +175,7 @@ export const createTeamMember = async (req, res) => {
   }
 };
 
-// ============================================
 // GET ALL TEAM MEMBERS
-// ============================================
 export const getTeamMembers = async (req, res) => {
   try {
     const teamMembers = await TeamMember.find()
@@ -208,9 +192,7 @@ export const getTeamMembers = async (req, res) => {
   }
 };
 
-// ============================================
 // GET ONE TEAM MEMBER
-// ============================================
 export const getTeamMemberById = async (req, res) => {
   try {
     const teamMember = await TeamMember.findById(req.params.id).populate(
@@ -233,9 +215,7 @@ export const getTeamMemberById = async (req, res) => {
   }
 };
 
-// ============================================
 // UPDATE TEAM MEMBER
-// ============================================
 export const updateTeamMember = async (req, res) => {
   try {
     const { fullName, email, phone, role, employmentType, assignedProjects } =
@@ -271,9 +251,7 @@ export const updateTeamMember = async (req, res) => {
   }
 };
 
-// ============================================
 // TOGGLE ACTIVE STATUS
-// ============================================
 export const toggleTeamMemberStatus = async (req, res) => {
   try {
     const teamMember = await TeamMember.findById(req.params.id);
@@ -302,9 +280,7 @@ export const toggleTeamMemberStatus = async (req, res) => {
   }
 };
 
-// ============================================
-// DELETE TEAM MEMBER
-// ============================================
+// DELETE TEAM MEMBER (soft delete by deactivating)
 export const deleteTeamMember = async (req, res) => {
   try {
     const teamMember = await TeamMember.findByIdAndDelete(req.params.id);
@@ -325,9 +301,6 @@ export const deleteTeamMember = async (req, res) => {
   }
 };
 
-// ============================================
-// LOGIN TEAM MEMBER
-// ============================================
 export const loginTeamMember = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -355,43 +328,5 @@ export const loginTeamMember = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
-};
-
-// ============================================
-// RESEND CREDENTIALS EMAIL (BONUS FEATURE)
-// ============================================
-export const resendCredentials = async (req, res) => {
-  try {
-    const { memberId } = req.body;
-
-    const member = await TeamMember.findById(memberId);
-    if (!member) {
-      return res.status(404).json({ message: "Team member not found" });
-    }
-
-    // Generate new temporary password
-    const temporaryPassword = generatePassword();
-    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
-
-    // Update password
-    member.password = hashedPassword;
-    member.passwordChangeRequired = true;
-    await member.save();
-
-    // Send email with new credentials
-    await sendCredentialsEmail(
-      member.email,
-      member.fullName,
-      temporaryPassword
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "New credentials sent via email",
-    });
-  } catch (error) {
-    console.error("Resend Credentials Error:", error);
-    res.status(500).json({ success: false, message: error.message });
   }
 };

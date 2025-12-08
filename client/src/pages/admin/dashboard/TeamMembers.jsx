@@ -2,52 +2,7 @@ import { useEffect, useState } from "react";
 import { X, Plus, Eye, Edit, Power } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-// Assuming you have this API utility
-const API_URL = "http://localhost:5000/api"; // Change to your backend URL
-
-const api = {
-  get: async (url, options) => {
-    const response = await fetch(`${API_URL}${url}`, options);
-    return response.json();
-  },
-  post: async (url, data, options) => {
-    const response = await fetch(`${API_URL}${url}`, {
-      ...options,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  },
-  put: async (url, data, options) => {
-    const response = await fetch(`${API_URL}${url}`, {
-      ...options,
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  },
-  patch: async (url, data, options) => {
-    const response = await fetch(`${API_URL}${url}`, {
-      ...options,
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  },
-};
+import { api } from "../../../lib/api.js";
 
 export default function TeamMemberManager() {
   const [projects, setProjects] = useState([]);
@@ -72,16 +27,17 @@ export default function TeamMemberManager() {
     const fetchProjects = async () => {
       try {
         setLoadingProjects(true);
-        const token = localStorage.getItem("adminToken");
 
-        const res = await api.get("/projects", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // ✅ FIX: Access res.data.projects (same as Projects.jsx)
+        const res = await api.get("/api/projects");
 
-        if (res.success) {
-          setProjects(res.projects || []);
+        // ✅ FIX: Check res.data, not just res
+        if (res.data?.projects) {
+          setProjects(res.data.projects);
+          console.log("✅ Projects loaded:", res.data.projects.length);
+        } else if (res.data) {
+          // Fallback if projects array is at root
+          setProjects(res.data);
         }
       } catch (err) {
         console.error("Failed to fetch projects:", err);
@@ -102,16 +58,15 @@ export default function TeamMemberManager() {
   const fetchTeamMembers = async () => {
     try {
       setLoadingMembers(true);
-      const token = localStorage.getItem("adminToken");
 
-      const res = await api.get("/team-members", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // ✅ FIX: Access res.data.teamMembers (consistent with backend response)
+      const res = await api.get("/api/team-members");
 
-      if (res.success) {
-        setTeamMembers(res.teamMembers || []);
+      if (res.data?.teamMembers) {
+        setTeamMembers(res.data.teamMembers);
+        console.log("✅ Team members loaded:", res.data.teamMembers.length);
+      } else if (res.data?.success && res.data?.teamMembers) {
+        setTeamMembers(res.data.teamMembers);
       }
     } catch (err) {
       console.error("Failed to fetch team members:", err);
@@ -160,39 +115,29 @@ export default function TeamMemberManager() {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem("adminToken");
-
       if (isEditMode) {
-        // Update existing member
-        const res = await api.put(`/team-members/${editingMemberId}`, form, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // ✅ FIX: Corrected API endpoint
+        const res = await api.put(`/api/team-members/${editingMemberId}`, form);
 
-        if (res.success) {
+        if (res.data?.success) {
           toast.success("Team member updated successfully!");
           fetchTeamMembers();
           setIsModalOpen(false);
         } else {
-          toast.error(res.message || "Failed to update team member");
+          toast.error(res.data?.message || "Failed to update team member");
         }
       } else {
-        // Create new member
-        const res = await api.post("/team-members", form, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // ✅ FIX: Corrected API endpoint
+        const res = await api.post("/api/team-members", form);
 
-        if (res.success) {
+        if (res.data?.success) {
           toast.success(
             "Team member created! Login credentials sent to their email."
           );
           fetchTeamMembers();
           setIsModalOpen(false);
         } else {
-          toast.error(res.message || "Failed to create team member");
+          toast.error(res.data?.message || "Failed to create team member");
         }
       }
 
@@ -207,29 +152,22 @@ export default function TeamMemberManager() {
       });
     } catch (err) {
       console.error("Submit failed:", err);
-      toast.error("An error occurred. Please try again.");
+      toast.error(
+        err.response?.data?.message || "An error occurred. Please try again."
+      );
     }
   };
 
   const toggleMemberStatus = async (id) => {
     try {
-      const token = localStorage.getItem("adminToken");
+      // ✅ FIX: Corrected API endpoint
+      const res = await api.patch(`/api/team-members/${id}/toggle-status`);
 
-      const res = await api.patch(
-        `/team-members/${id}/toggle-status`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (res.success) {
-        toast.success(res.message);
+      if (res.data?.success) {
+        toast.success(res.data.message);
         fetchTeamMembers();
       } else {
-        toast.error(res.message || "Failed to update status");
+        toast.error(res.data?.message || "Failed to update status");
       }
     } catch (err) {
       console.error("Toggle status failed:", err);
@@ -419,7 +357,7 @@ export default function TeamMemberManager() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-5">
+              <form onSubmit={submit} className="p-6 space-y-5">
                 <div>
                   <label className="block text-golden-200 mb-2 font-medium">
                     Full Name *
@@ -549,7 +487,7 @@ export default function TeamMemberManager() {
 
                 <div className="flex gap-3 pt-4">
                   <button
-                    onClick={submit}
+                    type="submit"
                     className="flex-1 bg-gradient-to-r from-golden-600 to-golden-500 hover:from-golden-700 hover:to-golden-600 text-black-900 px-6 py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl"
                   >
                     {isEditMode
@@ -557,13 +495,14 @@ export default function TeamMemberManager() {
                       : "Create Member & Send Invite"}
                   </button>
                   <button
+                    type="button"
                     onClick={() => setIsModalOpen(false)}
                     className="px-6 py-3 bg-black-700 hover:bg-black-600 text-golden-200 rounded-lg font-semibold transition-all border border-golden-900/30"
                   >
                     Cancel
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         )}
