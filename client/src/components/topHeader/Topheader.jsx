@@ -77,7 +77,7 @@ function Topheader() {
           <div className="mobile__logo">
             <Link to="/">
               <img
-                src="./assets/eslogo.svg"
+                src="/assets/eslogo.svg"
                 alt="Estate Syndicates Logo"
                 className="w-[80px] iphone5s:w-[60px]"
               />

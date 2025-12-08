@@ -7,7 +7,7 @@ import {
   loginTeamMember,
   toggleTeamMemberStatus,
   updateTeamMember,
-} from "../controllers/Teammember.controller.js";
+} from "../controllers/TeamMember.controller.js";
 
 const router = express.Router();
 
