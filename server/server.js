@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import investorRoutes from "./routes/investor.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import projectsRoutes from "./routes/Project.route.js";
+import teamMemberRoutes from "./routes/TeamMember.routes.js";
 
 dotenv.config();
 
@@ -70,6 +71,7 @@ app.use("/investor", investorRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/api/team-members", teamMemberRoutes);
 
 /* ----------------------------------------------------- */
 /*                   BASE ROUTE                          */

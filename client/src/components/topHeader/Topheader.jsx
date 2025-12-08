@@ -22,7 +22,7 @@ function Topheader() {
             <div className="logo">
               <Link to="/">
                 <img
-                  src="./assets/eslogo.svg"
+                  src="/assets/eslogo.svg"
                   alt="Estate Syndicate Logo"
                   className="w-[90px] "
                 />

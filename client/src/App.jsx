@@ -33,6 +33,9 @@ import SupportCommunity from "./pages/investor/dashboard/SupportCommunity";
 import Projects from "./pages/admin/dashboard/Projects";
 import DashboardLayout from "./pages/admin/dashboard/DashboardLayout";
 import { ToastContainer } from "react-toastify";
+import TeamMembers from "./pages/admin/dashboard/TeamMembers";
+import TeamLogin from "./pages/team/login/TeamLogin";
+import TeamChangePassword from "./pages/team/changepassword/TeamChangePassword";
 
 function App() {
   const location = useLocation();
@@ -66,6 +69,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/admin/signup" element={<AdminSignup />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/team/login" element={<TeamLogin />} />
+        <Route path="/team/changepassword" element={<TeamChangePassword />} />
 
         {/* Investor Dashboard Routes */}
         <Route path="/investor-dashboard/" element={<InvestorLayout />}>
@@ -76,6 +81,7 @@ function App() {
           <Route path="documents" element={<Documents />} />
           <Route path="profile-settings" element={<ProfileSettings />} />
           <Route path="support-community" element={<SupportCommunity />} />
+
           <Route
             path="investmentPreference"
             element={<InvestmentPreference />}
@@ -87,6 +93,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="projects" element={<Projects />} />
+          <Route path="team" element={<TeamMembers />} />
         </Route>
       </Routes>
 

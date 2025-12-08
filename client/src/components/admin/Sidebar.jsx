@@ -9,6 +9,7 @@ import {
   FaUser,
   FaHeadset,
 } from "react-icons/fa";
+import { RiTeamFill } from "react-icons/ri";
 
 export default function Sidebar({ open, setOpen }) {
   const location = useLocation();
@@ -31,6 +32,11 @@ export default function Sidebar({ open, setOpen }) {
       icon: <FaFileAlt />,
     },
     { name: "Documents", path: "/dashboard/documents", icon: <FaFileAlt /> },
+    {
+      name: "Add Team Member",
+      path: "/dashboard/team",
+      icon: <RiTeamFill />,
+    },
     {
       name: "Investment Preference",
       path: "/dashboard/preferences",
