@@ -1,23 +1,25 @@
 import express from "express";
 import {
   createTeamMember,
-  deleteTeamMember,
-  getTeamMemberById,
   getTeamMembers,
-  loginTeamMember,
-  toggleTeamMemberStatus,
+  getTeamMemberById,
   updateTeamMember,
+  deleteTeamMember,
+  toggleTeamMemberStatus,
+  loginTeamMember,
 } from "../controllers/TeamMember.controller.js";
 
 const router = express.Router();
 
-// Team Member Routes
-router.post("/", createTeamMember); // Create
-router.get("/", getTeamMembers); // Get all
-router.get("/:id", getTeamMemberById); // Get one
-router.put("/:id", updateTeamMember); // Update
-router.patch("/:id/toggle-status", toggleTeamMemberStatus); // Toggle active status
-router.delete("/:id", deleteTeamMember); // Delete
-router.post("/team/login", loginTeamMember);
+// LOGIN FIRST — prevents /:id collision
+router.post("/login", loginTeamMember);
+
+// REST ROUTES
+router.post("/", createTeamMember);
+router.get("/", getTeamMembers);
+router.get("/:id", getTeamMemberById);
+router.put("/:id", updateTeamMember);
+router.patch("/:id/toggle-status", toggleTeamMemberStatus);
+router.delete("/:id", deleteTeamMember);
 
 export default router;
