@@ -3,125 +3,135 @@ import crypto from "crypto";
 import TeamMember from "../models/TeamMember.js";
 import nodemailer from "nodemailer";
 
-// Email configuration (replace with your SMTP details)
-// const transporter = nodemailer.createTransport({
-//   host: process.env.SMTP_HOST,
-//   port: process.env.SMTP_PORT,
-//   secure: false,
-//   auth: {
-//     user: process.env.SMTP_USER,
-//     pass: process.env.SMTP_PASS,
-//   },
-// });
-
 // Generate random password
 const generatePassword = () => {
   return crypto.randomBytes(8).toString("hex");
 };
 
 // Send credentials email
-// utils/sendCredentialsEmail.js
-
 export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE === "true",
-    auth: {
+  try {
+    // ✅ Add better error logging
+    console.log("📧 Attempting to send email to:", email);
+    console.log("SMTP Config:", {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+      secure: process.env.SMTP_SECURE === "true",
+    });
 
-  const htmlMessage = `
-  <div style="
-    background:#f4f4f7;
-    padding:40px 0;
-    font-family:Arial, sans-serif;
-  ">
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      // ✅ Add these for debugging
+      debug: true,
+      logger: true,
+    });
+
+    // ✅ Verify connection before sending
+    await transporter.verify();
+    console.log("✅ SMTP connection verified");
+
+    const htmlMessage = `
     <div style="
-      max-width:600px;
-      margin:0 auto;
-      background:#ffffff;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow:0 4px 12px rgba(0,0,0,0.08);
+      background:#f4f4f7;
+      padding:40px 0;
+      font-family:Arial, sans-serif;
     ">
       <div style="
-        background:#111827;
-        color:#ffffff;
-        padding:24px 32px;
-        text-align:center;
+        max-width:600px;
+        margin:0 auto;
+        background:#ffffff;
+        border-radius:12px;
+        overflow:hidden;
+        box-shadow:0 4px 12px rgba(0,0,0,0.08);
       ">
-        <h1 style="margin:0; font-size:24px;">
-          Estates Indicates
-        </h1>
-      </div>
-
-      <div style="padding:32px; color:#333;">
-        <h2 style="font-size:20px; margin-top:0;">
-          Welcome, ${fullName}!
-        </h2>
-
-        <p style="line-height:1.6; font-size:15px;">
-          Your account has been successfully created. Below are your login credentials:
-        </p>
-
         <div style="
-          background:#f9fafb;
-          padding:20px;
-          border-radius:8px;
-          border:1px solid #e5e7eb;
-          margin-bottom:25px;
+          background:#111827;
+          color:#ffffff;
+          padding:24px 32px;
+          text-align:center;
         ">
-          <p style="margin:0 0 10px;">
-            <strong>Email:</strong> ${email}
-          </p>
-          <p style="margin:0;">
-            <strong>Temporary Password:</strong> ${tempPassword}
-          </p>
+          <h1 style="margin:0; font-size:24px;">
+            Estates Indicates
+          </h1>
         </div>
 
-        <p style="line-height:1.6; font-size:15px;">
-          Please log in and change your password immediately for security purposes.
-        </p>
+        <div style="padding:32px; color:#333;">
+          <h2 style="font-size:20px; margin-top:0;">
+            Welcome, ${fullName}!
+          </h2>
 
-        <a href="https://estatesindicates.com/"
-          style="
-            display:inline-block;
-            background:#2563eb;
-            color:#ffffff;
-            padding:12px 20px;
-            border-radius:6px;
-            text-decoration:none;
-            font-size:15px;
-            margin-top:10px;
+          <p style="line-height:1.6; font-size:15px;">
+            Your account has been successfully created. Below are your login credentials:
+          </p>
+
+          <div style="
+            background:#f9fafb;
+            padding:20px;
+            border-radius:8px;
+            border:1px solid #e5e7eb;
+            margin-bottom:25px;
           ">
-          Go to Login
-        </a>
-      </div>
+            <p style="margin:0 0 10px;">
+              <strong>Email:</strong> ${email}
+            </p>
+            <p style="margin:0;">
+              <strong>Temporary Password:</strong> ${tempPassword}
+            </p>
+          </div>
 
-      <div style="
-        background:#f3f4f6;
-        padding:20px;
-        text-align:center;
-        font-size:12px;
-        color:#6b7280;
-      ">
-        © ${new Date().getFullYear()} Estates Indicates. All rights reserved.
+          <p style="line-height:1.6; font-size:15px;">
+            Please log in and change your password immediately for security purposes.
+          </p>
+
+          <a href="https://estatesindicates.com/login"
+            style="
+              display:inline-block;
+              background:#2563eb;
+              color:#ffffff;
+              padding:12px 20px;
+              border-radius:6px;
+              text-decoration:none;
+              font-size:15px;
+              margin-top:10px;
+            ">
+            Go to Login
+          </a>
+        </div>
+
+        <div style="
+          background:#f3f4f6;
+          padding:20px;
+          text-align:center;
+          font-size:12px;
+          color:#6b7280;
+        ">
+          © ${new Date().getFullYear()} Estates Indicates. All rights reserved.
+        </div>
       </div>
     </div>
-  </div>
-  `;
+    `;
 
-  const mailOptions = {
-    from: `"Estates Indicates" <info@estatesindicates.com>`,
-    to: email,
-    subject: "Your Estates Indicates Account Credentials",
-    html: htmlMessage,
-  };
+    const mailOptions = {
+      from: `"Estates Indicates" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: "Your Estates Indicates Account Credentials",
+      html: htmlMessage,
+    };
 
-  return transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Email sent successfully:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("❌ Email sending failed:", error);
+    throw error; // ✅ Re-throw so we can handle it in the controller
+  }
 };
 
 // CREATE TEAM MEMBER
@@ -133,7 +143,10 @@ export const createTeamMember = async (req, res) => {
     // Check if team member already exists
     const existingMember = await TeamMember.findOne({ email });
     if (existingMember) {
-      return res.status(400).json({ message: "Email already registered" });
+      return res.status(400).json({
+        success: false,
+        message: "Email already registered",
+      });
     }
 
     // Generate temporary password
@@ -153,25 +166,37 @@ export const createTeamMember = async (req, res) => {
       isActive: true,
     });
 
-    // Send credentials email
-    try {
-      await sendCredentialsEmail(email, fullName, temporaryPassword);
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError);
-      // Don't fail the request if email fails
-    }
-
     // Populate projects before sending response
     await teamMember.populate("assignedProjects");
 
+    // ✅ Try to send email, but track if it fails
+    let emailSent = false;
+    let emailError = null;
+
+    try {
+      await sendCredentialsEmail(email, fullName, temporaryPassword);
+      emailSent = true;
+      console.log("✅ Credentials email sent successfully");
+    } catch (error) {
+      emailError = error.message;
+      console.error("❌ Email sending failed:", error);
+    }
+
+    // ✅ Return success with email status
     res.status(201).json({
       success: true,
-      message: "Team member created and credentials sent via email",
+      message: emailSent
+        ? "Team member created and credentials sent via email"
+        : `Team member created, but email failed to send: ${emailError}. Please send credentials manually.`,
       teamMember,
+      emailSent,
     });
   } catch (error) {
-    console.error("Create Team Member Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error("❌ Create Team Member Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -225,7 +250,6 @@ export const updateTeamMember = async (req, res) => {
       req.params.id,
       {
         fullName,
-        email,
         phone,
         role,
         employmentType,
@@ -280,7 +304,7 @@ export const toggleTeamMemberStatus = async (req, res) => {
   }
 };
 
-// DELETE TEAM MEMBER (soft delete by deactivating)
+// DELETE TEAM MEMBER
 export const deleteTeamMember = async (req, res) => {
   try {
     const teamMember = await TeamMember.findByIdAndDelete(req.params.id);
@@ -301,22 +325,32 @@ export const deleteTeamMember = async (req, res) => {
   }
 };
 
+// LOGIN TEAM MEMBER
 export const loginTeamMember = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const member = await TeamMember.findOne({ email });
     if (!member) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
     }
 
     const isMatch = await member.matchPassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
     }
 
     if (!member.isActive) {
-      return res.status(403).json({ message: "Account is deactivated" });
+      return res.status(403).json({
+        success: false,
+        message: "Account is deactivated",
+      });
     }
 
     const token = member.generateToken();
@@ -327,6 +361,9 @@ export const loginTeamMember = async (req, res) => {
       member,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

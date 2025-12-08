@@ -27,16 +27,12 @@ export default function TeamMemberManager() {
     const fetchProjects = async () => {
       try {
         setLoadingProjects(true);
-
-        // ✅ FIX: Access res.data.projects (same as Projects.jsx)
         const res = await api.get("/api/projects");
 
-        // ✅ FIX: Check res.data, not just res
         if (res.data?.projects) {
           setProjects(res.data.projects);
           console.log("✅ Projects loaded:", res.data.projects.length);
         } else if (res.data) {
-          // Fallback if projects array is at root
           setProjects(res.data);
         }
       } catch (err) {
@@ -58,8 +54,6 @@ export default function TeamMemberManager() {
   const fetchTeamMembers = async () => {
     try {
       setLoadingMembers(true);
-
-      // ✅ FIX: Access res.data.teamMembers (consistent with backend response)
       const res = await api.get("/api/team-members");
 
       if (res.data?.teamMembers) {
@@ -116,8 +110,9 @@ export default function TeamMemberManager() {
 
     try {
       if (isEditMode) {
-        // ✅ FIX: Corrected API endpoint
         const res = await api.put(`/api/team-members/${editingMemberId}`, form);
+
+        console.log("✅ Update response:", res.data);
 
         if (res.data?.success) {
           toast.success("Team member updated successfully!");
@@ -127,13 +122,22 @@ export default function TeamMemberManager() {
           toast.error(res.data?.message || "Failed to update team member");
         }
       } else {
-        // ✅ FIX: Corrected API endpoint
         const res = await api.post("/api/team-members", form);
 
+        console.log("✅ Create response:", res.data);
+
         if (res.data?.success) {
-          toast.success(
-            "Team member created! Login credentials sent to their email."
-          );
+          // Show appropriate message based on email status
+          if (res.data.emailSent) {
+            toast.success(
+              "Team member created! Login credentials sent to their email."
+            );
+          } else {
+            toast.warning(
+              res.data.message ||
+                "Team member created, but email failed to send. Please send credentials manually."
+            );
+          }
           fetchTeamMembers();
           setIsModalOpen(false);
         } else {
@@ -151,7 +155,8 @@ export default function TeamMemberManager() {
         assignedProjects: [],
       });
     } catch (err) {
-      console.error("Submit failed:", err);
+      console.error("❌ Submit failed:", err);
+      console.error("Error response:", err.response?.data);
       toast.error(
         err.response?.data?.message || "An error occurred. Please try again."
       );
@@ -160,7 +165,6 @@ export default function TeamMemberManager() {
 
   const toggleMemberStatus = async (id) => {
     try {
-      // ✅ FIX: Corrected API endpoint
       const res = await api.patch(`/api/team-members/${id}/toggle-status`);
 
       if (res.data?.success) {
@@ -221,13 +225,11 @@ export default function TeamMemberManager() {
           </button>
         </div>
 
-        {/* Loading State */}
         {loadingMembers ? (
           <div className="bg-black-800 rounded-xl shadow-2xl p-8 text-center border border-golden-900/30">
             <p className="text-golden-200">Loading team members...</p>
           </div>
         ) : (
-          /* Team Members Table */
           <div className="bg-black-800 rounded-xl shadow-2xl overflow-hidden border border-golden-900/30">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -341,7 +343,6 @@ export default function TeamMemberManager() {
           </div>
         )}
 
-        {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-black-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-black-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-golden-900/30">
