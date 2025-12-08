@@ -8,10 +8,9 @@ const generatePassword = () => {
   return crypto.randomBytes(8).toString("hex");
 };
 
-// Send credentials email
+// Send credentials email with timeout and better error handling
 export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
   try {
-    // ✅ Add better error logging
     console.log("📧 Attempting to send email to:", email);
     console.log("SMTP Config:", {
       host: process.env.SMTP_HOST,
@@ -23,18 +22,32 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === "true",
+      secure: process.env.SMTP_SECURE === "true", // true for 465, false for 587
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-      // ✅ Add these for debugging
+      // ✅ Add connection timeout
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
+      // ✅ Add TLS options for better compatibility
+      tls: {
+        rejectUnauthorized: false, // Allow self-signed certificates
+        minVersion: "TLSv1.2",
+      },
       debug: true,
       logger: true,
     });
 
-    // ✅ Verify connection before sending
-    await transporter.verify();
+    // ✅ Verify connection with timeout
+    console.log("🔌 Verifying SMTP connection...");
+    await Promise.race([
+      transporter.verify(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("SMTP verification timeout")), 15000)
+      ),
+    ]);
     console.log("✅ SMTP connection verified");
 
     const htmlMessage = `
@@ -125,12 +138,23 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
       html: htmlMessage,
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    console.log("📤 Sending email...");
+    const info = await Promise.race([
+      transporter.sendMail(mailOptions),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Email send timeout")), 20000)
+      ),
+    ]);
+
     console.log("✅ Email sent successfully:", info.messageId);
     return info;
   } catch (error) {
-    console.error("❌ Email sending failed:", error);
-    throw error; // ✅ Re-throw so we can handle it in the controller
+    console.error("❌ Email sending failed:");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error code:", error.code);
+    console.error("Full error:", error);
+    throw error;
   }
 };
 
@@ -169,7 +193,7 @@ export const createTeamMember = async (req, res) => {
     // Populate projects before sending response
     await teamMember.populate("assignedProjects");
 
-    // ✅ Try to send email, but track if it fails
+    // Try to send email
     let emailSent = false;
     let emailError = null;
 
@@ -179,17 +203,21 @@ export const createTeamMember = async (req, res) => {
       console.log("✅ Credentials email sent successfully");
     } catch (error) {
       emailError = error.message;
-      console.error("❌ Email sending failed:", error);
+      console.error(
+        "❌ Email sending failed, but user was created:",
+        error.message
+      );
     }
 
-    // ✅ Return success with email status
+    // Return success with email status
     res.status(201).json({
       success: true,
       message: emailSent
         ? "Team member created and credentials sent via email"
-        : `Team member created, but email failed to send: ${emailError}. Please send credentials manually.`,
+        : `Team member created, but email failed: ${emailError}. Temporary password: ${temporaryPassword}`,
       teamMember,
       emailSent,
+      ...(!emailSent && { temporaryPassword }), // Include password if email failed
     });
   } catch (error) {
     console.error("❌ Create Team Member Error:", error);
@@ -243,7 +271,7 @@ export const getTeamMemberById = async (req, res) => {
 // UPDATE TEAM MEMBER
 export const updateTeamMember = async (req, res) => {
   try {
-    const { fullName, email, phone, role, employmentType, assignedProjects } =
+    const { fullName, phone, role, employmentType, assignedProjects } =
       req.body;
 
     const teamMember = await TeamMember.findByIdAndUpdate(
