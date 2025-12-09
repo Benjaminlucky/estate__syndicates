@@ -79,7 +79,7 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
               <strong>Email:</strong> ${email}
             </p>
             <p style="margin:0;">
-              <strong>Temporary Password:</strong> ${tempPassword}
+              <strong>Temporary Password:</strong> <code style="background:#e5e7eb;padding:4px 8px;border-radius:4px;font-family:monospace;">${tempPassword}</code>
             </p>
           </div>
 
@@ -358,10 +358,15 @@ export const deleteTeamMember = async (req, res) => {
 // ============================================
 export const loginTeamMember = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+
+    // Trim whitespace from email and password
+    email = email?.trim();
+    password = password?.trim();
 
     console.log("🔐 Login attempt for:", email);
     console.log("📝 Password received:", password);
+    console.log("📏 Password length:", password?.length);
 
     // Validation
     if (!email || !password) {
@@ -447,7 +452,12 @@ export const loginTeamMember = async (req, res) => {
 // ============================================
 export const changePassword = async (req, res) => {
   try {
-    const { email, currentPassword, newPassword } = req.body;
+    let { email, currentPassword, newPassword } = req.body;
+
+    // Trim whitespace
+    email = email?.trim();
+    currentPassword = currentPassword?.trim();
+    newPassword = newPassword?.trim();
 
     // Validation
     if (!email || !currentPassword || !newPassword) {

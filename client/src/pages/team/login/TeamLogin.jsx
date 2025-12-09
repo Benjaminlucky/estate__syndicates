@@ -14,12 +14,14 @@ export default function TeamLogin() {
     setLoading(true);
 
     try {
-      // FIXED: Added /api prefix to match backend route
-      const res = await api.post("/team-members/login", {
-        email,
-        password,
+      // axios automatically uses baseURL from api.js, so just use the endpoint path
+      // Trim whitespace from inputs to prevent login issues
+      const response = await api.post("/team-members/login", {
+        email: email.trim(),
+        password: password.trim(),
       });
 
+      const res = response.data;
       console.log("Login response:", res);
 
       // Check if login was successful
@@ -39,18 +41,24 @@ export default function TeamLogin() {
     } catch (err) {
       console.error("Login error:", err);
 
-      // Better error handling
+      // Better error handling for axios
       let errorMessage = "Login failed. Please check your credentials.";
 
       if (err.response) {
         // Server responded with error
-        errorMessage = err.response.data?.message || errorMessage;
+        errorMessage =
+          err.response.data?.message ||
+          err.response.data?.error ||
+          errorMessage;
+        console.error("Server error:", err.response.status, err.response.data);
       } else if (err.request) {
         // Request made but no response
         errorMessage = "Cannot connect to server. Please try again.";
+        console.error("Network error:", err.request);
       } else {
         // Other errors
         errorMessage = err.message || errorMessage;
+        console.error("Error:", err.message);
       }
 
       setError(errorMessage);
@@ -138,7 +146,7 @@ export default function TeamLogin() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth="2"
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.976 9.976 0 011.59-4.254m0 0l2.832 2.832m5.683-5.683a9.953 9.953 0 012.96-.83M4.914 7.914A9.953 9.953 0 012 12m12.707 6.707l-1.414 1.414m-6.828-6.828L4.05 11.88"
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.976 9.961 0 011.59-4.254m0 0l2.832 2.832m5.683-5.683a9.953 9.953 0 012.96-.83M4.914 7.914A9.953 9.953 0 012 12m12.707 6.707l-1.414 1.414m-6.828-6.828L4.05 11.88"
                     />
                   </svg>
                 ) : (
