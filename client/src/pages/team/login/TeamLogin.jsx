@@ -15,7 +15,7 @@ export default function TeamLogin() {
 
     try {
       // FIXED: Added /api prefix to match backend route
-      const res = await api.post("/api/team-members/login", {
+      const res = await api.post("/team-members/login", {
         email,
         password,
       });
