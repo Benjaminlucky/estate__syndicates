@@ -7,7 +7,7 @@ let BASE_URL = "";
    LOCAL DEVELOPMENT (Vite on port 5173)
 ---------------------------------------------- */
 if (origin.includes("localhost:5173") || origin.includes("127.0.0.1:5173")) {
-  BASE_URL = "http://localhost:5000"; // local backend
+  BASE_URL = "http://localhost:5000/api"; // local backend with /api prefix
 } else if (
   /* ---------------------------------------------
    PRODUCTION LIVE WEBSITE
@@ -16,12 +16,12 @@ if (origin.includes("localhost:5173") || origin.includes("127.0.0.1:5173")) {
   origin.includes("www.estatesindicates.com") || // www version
   origin.includes("estatesyndicates.netlify.app") // Netlify (if used)
 ) {
-  BASE_URL = "https://estate-syndicates.onrender.com"; // backend on Render
+  BASE_URL = "https://estate-syndicates.onrender.com/api"; // backend on Render with /api prefix
 } else {
   /* ---------------------------------------------
    FALLBACK
 ---------------------------------------------- */
-  BASE_URL = "https://estate-syndicates.onrender.com";
+  BASE_URL = "https://estate-syndicates.onrender.com/api"; // fallback with /api prefix
 }
 
 export const api = axios.create({
