@@ -14,11 +14,13 @@ export default function TeamLogin() {
     setLoading(true);
 
     try {
-      // Fixed: Use the correct backend route
-      const res = await api.post("/team-members/login", {
+      // FIXED: Added /api prefix to match backend route
+      const res = await api.post("/api/team-members/login", {
         email,
         password,
       });
+
+      console.log("Login response:", res);
 
       // Check if login was successful
       if (res.success && res.token) {
@@ -36,11 +38,22 @@ export default function TeamLogin() {
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Login failed. Please check your credentials."
-      );
+
+      // Better error handling
+      let errorMessage = "Login failed. Please check your credentials.";
+
+      if (err.response) {
+        // Server responded with error
+        errorMessage = err.response.data?.message || errorMessage;
+      } else if (err.request) {
+        // Request made but no response
+        errorMessage = "Cannot connect to server. Please try again.";
+      } else {
+        // Other errors
+        errorMessage = err.message || errorMessage;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
