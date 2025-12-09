@@ -69,7 +69,7 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
             Please log in and change your password immediately for security purposes.
           </p>
 
-          <a href="https://estatesindicates.com/login"
+          <a href="https://estatesindicates.com/team/login"
             style="
               display:inline-block;
               background:#2563eb;
