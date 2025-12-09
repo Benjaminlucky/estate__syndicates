@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const teamMemberSchema = new mongoose.Schema(
   {
@@ -60,6 +62,7 @@ const teamMemberSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
 // Compare password
 teamMemberSchema.methods.matchPassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);

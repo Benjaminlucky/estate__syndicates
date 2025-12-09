@@ -11,10 +11,28 @@ const generatePassword = () => {
   return crypto.randomBytes(8).toString("hex");
 };
 
-// Send credentials email using Resend
+// ============================================
+// DYNAMIC FRONTEND URL HELPER
+// ============================================
+const getFrontendUrl = () => {
+  const nodeEnv = process.env.NODE_ENV;
+
+  if (nodeEnv === "development") {
+    return process.env.FRONTEND_URL_DEV || "http://localhost:5173";
+  } else {
+    return process.env.FRONTEND_URL_PROD || "https://estatesindicates.com";
+  }
+};
+
+// ============================================
+// SEND CREDENTIALS EMAIL
+// ============================================
 export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
   try {
     console.log("📧 Sending email via Resend to:", email);
+
+    const frontendUrl = getFrontendUrl();
+    const loginUrl = `${frontendUrl}/team/login`;
 
     const htmlMessage = `
     <div style="
@@ -69,7 +87,7 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
             Please log in and change your password immediately for security purposes.
           </p>
 
-          <a href="https://estatesindicates.com/team/login"
+          <a href="${loginUrl}"
             style="
               display:inline-block;
               background:#2563eb;
@@ -98,7 +116,7 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
     `;
 
     const { data, error } = await resend.emails.send({
-      from: "Estates Indicates <onboarding@resend.dev>", // Use Resend's domain for testing
+      from: "Estates Indicates <onboarding@resend.dev>",
       to: email,
       subject: "Your Estates Indicates Account Credentials",
       html: htmlMessage,
@@ -109,19 +127,29 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
     }
 
     console.log("✅ Email sent successfully via Resend:", data.id);
+    console.log(`📧 Login URL in email: ${loginUrl}`);
     return { success: true, id: data.id };
   } catch (error) {
-    console.error("❌ Resend email error:");
-    console.error("Error message:", error.message);
+    console.error("❌ Resend email error:", error.message);
     throw error;
   }
 };
 
+// ============================================
 // CREATE TEAM MEMBER
+// ============================================
 export const createTeamMember = async (req, res) => {
   try {
     const { fullName, email, phone, role, employmentType, assignedProjects } =
       req.body;
+
+    // Validation
+    if (!fullName || !email || !role) {
+      return res.status(400).json({
+        success: false,
+        message: "Full name, email, and role are required",
+      });
+    }
 
     // Check if team member already exists
     const existingMember = await TeamMember.findOne({ email });
@@ -142,7 +170,7 @@ export const createTeamMember = async (req, res) => {
       email,
       phone,
       role,
-      employmentType,
+      employmentType: employmentType || "Contract",
       assignedProjects: assignedProjects || [],
       password: hashedPassword,
       passwordChangeRequired: true,
@@ -179,12 +207,14 @@ export const createTeamMember = async (req, res) => {
     console.error("❌ Create Team Member Error:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to create team member",
     });
   }
 };
 
+// ============================================
 // GET ALL TEAM MEMBERS
+// ============================================
 export const getTeamMembers = async (req, res) => {
   try {
     const teamMembers = await TeamMember.find()
@@ -201,7 +231,9 @@ export const getTeamMembers = async (req, res) => {
   }
 };
 
+// ============================================
 // GET ONE TEAM MEMBER
+// ============================================
 export const getTeamMemberById = async (req, res) => {
   try {
     const teamMember = await TeamMember.findById(req.params.id).populate(
@@ -224,7 +256,9 @@ export const getTeamMemberById = async (req, res) => {
   }
 };
 
+// ============================================
 // UPDATE TEAM MEMBER
+// ============================================
 export const updateTeamMember = async (req, res) => {
   try {
     const { fullName, phone, role, employmentType, assignedProjects } =
@@ -259,7 +293,9 @@ export const updateTeamMember = async (req, res) => {
   }
 };
 
+// ============================================
 // TOGGLE ACTIVE STATUS
+// ============================================
 export const toggleTeamMemberStatus = async (req, res) => {
   try {
     const teamMember = await TeamMember.findById(req.params.id);
@@ -288,7 +324,9 @@ export const toggleTeamMemberStatus = async (req, res) => {
   }
 };
 
+// ============================================
 // DELETE TEAM MEMBER
+// ============================================
 export const deleteTeamMember = async (req, res) => {
   try {
     const teamMember = await TeamMember.findByIdAndDelete(req.params.id);
@@ -309,45 +347,144 @@ export const deleteTeamMember = async (req, res) => {
   }
 };
 
+// ============================================
 // LOGIN TEAM MEMBER
+// ============================================
 export const loginTeamMember = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const member = await TeamMember.findOne({ email });
+    console.log("🔐 Login attempt for:", email);
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
+    // Find member by email
+    const member = await TeamMember.findOne({ email }).populate(
+      "assignedProjects"
+    );
+
     if (!member) {
+      console.log("❌ User not found:", email);
       return res.status(400).json({
         success: false,
         message: "Invalid email or password",
       });
     }
 
+    // Check if account is active
+    if (!member.isActive) {
+      console.log("❌ Account deactivated:", email);
+      return res.status(403).json({
+        success: false,
+        message:
+          "Your account has been deactivated. Please contact your administrator.",
+      });
+    }
+
+    // Check password
     const isMatch = await member.matchPassword(password);
+    if (!isMatch) {
+      console.log("❌ Invalid password for:", email);
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Generate token
+    const token = member.generateToken();
+
+    console.log("✅ Login successful for:", email);
+
+    // Return success
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      member: {
+        id: member._id,
+        fullName: member.fullName,
+        email: member.email,
+        role: member.role,
+        employmentType: member.employmentType,
+        assignedProjects: member.assignedProjects,
+        passwordChangeRequired: member.passwordChangeRequired,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Login failed. Please try again.",
+    });
+  }
+};
+
+// ============================================
+// CHANGE PASSWORD
+// ============================================
+export const changePassword = async (req, res) => {
+  try {
+    const { email, currentPassword, newPassword } = req.body;
+
+    // Validation
+    if (!email || !currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters long",
+      });
+    }
+
+    // Find member
+    const member = await TeamMember.findOne({ email });
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Verify current password
+    const isMatch = await member.matchPassword(currentPassword);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Invalid email or password",
+        message: "Current password is incorrect",
       });
     }
 
-    if (!member.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: "Account is deactivated",
-      });
-    }
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    const token = member.generateToken();
+    // Update password
+    member.password = hashedPassword;
+    member.passwordChangeRequired = false;
+    await member.save();
 
-    res.json({
+    console.log("✅ Password changed successfully for:", email);
+
+    res.status(200).json({
       success: true,
-      token,
-      member,
+      message: "Password changed successfully",
     });
   } catch (error) {
+    console.error("❌ Change password error:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to change password",
     });
   }
 };

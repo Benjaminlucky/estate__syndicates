@@ -7,14 +7,20 @@ import {
   deleteTeamMember,
   toggleTeamMemberStatus,
   loginTeamMember,
+  changePassword,
 } from "../controllers/TeamMember.controller.js";
 
 const router = express.Router();
 
-// LOGIN FIRST — prevents /:id collision
+// ============================================
+// AUTHENTICATION ROUTES (Must be first)
+// ============================================
 router.post("/login", loginTeamMember);
+router.post("/change-password", changePassword);
 
-// REST ROUTES
+// ============================================
+// CRUD ROUTES
+// ============================================
 router.post("/", createTeamMember);
 router.get("/", getTeamMembers);
 router.get("/:id", getTeamMemberById);

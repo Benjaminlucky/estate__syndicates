@@ -1,6 +1,5 @@
-// src/components/TeamLogin.jsx
 import { useState } from "react";
-import { api } from "../../../lib/api";
+import { api } from "../../../lib/api.js";
 
 export default function TeamLogin() {
   const [email, setEmail] = useState("");
@@ -15,16 +14,33 @@ export default function TeamLogin() {
     setLoading(true);
 
     try {
-      // Use the configured API instance instead of axios directly
-      const res = await api.post("/api/auth/team/login", {
+      // Fixed: Use the correct backend route
+      const res = await api.post("/team-members/login", {
         email,
         password,
       });
 
-      localStorage.setItem("team_token", res.data.token);
-      window.location.href = "/team/dashboard";
+      // Check if login was successful
+      if (res.success && res.token) {
+        localStorage.setItem("team_token", res.token);
+
+        // Store member data if needed
+        if (res.member) {
+          localStorage.setItem("team_member", JSON.stringify(res.member));
+        }
+
+        // Redirect to dashboard
+        window.location.href = "/team/dashboard";
+      } else {
+        setError(res.message || "Login failed");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      console.error("Login error:", err);
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Login failed. Please check your credentials."
+      );
     } finally {
       setLoading(false);
     }
@@ -37,12 +53,17 @@ export default function TeamLogin() {
   return (
     <div className="min-h-screen bg-black-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-black-800 rounded-xl shadow-2xl p-8 space-y-6 border border-black-700">
-        <h2 className="text-3xl font-bold text-white text-center">
-          Team Member Login
-        </h2>
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-white font-cinzel">
+            Team Member Login
+          </h2>
+          <p className="text-black-400 mt-2 text-sm">
+            Sign in to access your dashboard
+          </p>
+        </div>
 
         {error && (
-          <div className="p-3 bg-red-900 border border-red-700 rounded-lg">
+          <div className="p-3 bg-red-900/50 border border-red-700 rounded-lg">
             <p className="text-red-200 text-sm text-center">{error}</p>
           </div>
         )}
@@ -51,7 +72,7 @@ export default function TeamLogin() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium font-chivo text-black-200 mb-2"
+              className="block text-sm font-medium font-chivo text-golden-200 mb-2"
             >
               Email Address
             </label>
@@ -60,7 +81,7 @@ export default function TeamLogin() {
               name="email"
               type="email"
               autoComplete="email"
-              className="w-full px-4 py-3 font-chivo bg-black-700 border-2 border-golden-400 rounded-lg text-white placeholder-black-400 focus:outline-none focus:border-golden-300 focus:ring-2 focus:ring-golden-500 focus:ring-opacity-20 transition-all duration-200"
+              className="w-full px-4 py-3 font-chivo bg-black-900 border border-golden-900/30 rounded-lg text-golden-100 placeholder-black-400 focus:outline-none focus:ring-2 focus:ring-golden-600 focus:border-transparent transition-all"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -71,7 +92,7 @@ export default function TeamLogin() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-chivo font-medium text-black-200 mb-2"
+              className="block text-sm font-chivo font-medium text-golden-200 mb-2"
             >
               Password
             </label>
@@ -81,7 +102,7 @@ export default function TeamLogin() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                className="w-full px-4 py-3 bg-black-700 font-chivo border-2 border-golden-400 rounded-lg text-white placeholder-black-400 focus:outline-none focus:border-golden-300 focus:ring-2 focus:ring-golden-500 focus:ring-opacity-20 transition-all duration-200 pr-12"
+                className="w-full px-4 py-3 bg-black-900 font-chivo border border-golden-900/30 rounded-lg text-golden-100 placeholder-black-400 focus:outline-none focus:ring-2 focus:ring-golden-600 focus:border-transparent transition-all pr-12"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -104,7 +125,7 @@ export default function TeamLogin() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth="2"
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.976 9.976 0 011.59-4.254l-.794-.794a.5.5 0 010-.707l1.06-1.06a.5.5 0 01.707 0l1.246 1.246A10.015 10.015 0 0112 5c4.478 0 8.268 2.943 9.543 7a9.976 9.976 0 01-1.59 4.254l.794.794a.5.5 0 010 .707l-1.06 1.06a.5.5 0 01-.707 0l-1.246-1.246zM12 15a3 3 0 100-6 3 3 0 000 6z"
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.976 9.976 0 011.59-4.254m0 0l2.832 2.832m5.683-5.683a9.953 9.953 0 012.96-.83M4.914 7.914A9.953 9.953 0 012 12m12.707 6.707l-1.414 1.414m-6.828-6.828L4.05 11.88"
                     />
                   </svg>
                 ) : (
@@ -118,7 +139,13 @@ export default function TeamLogin() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                     />
                   </svg>
                 )}
@@ -129,10 +156,10 @@ export default function TeamLogin() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-3 px-4 rounded-lg font-chivo font-semibold text-white transition-all duration-200 ${
+            className={`w-full py-3 px-4 rounded-lg font-chivo font-semibold text-black-900 transition-all duration-200 ${
               loading
                 ? "bg-golden-400 opacity-60 cursor-not-allowed"
-                : "bg-golden-500 hover:bg-golden-600 focus:outline-none focus:ring-2 focus:ring-golden-400 focus:ring-offset-2 focus:ring-offset-black-800"
+                : "bg-gradient-to-r from-golden-600 to-golden-500 hover:from-golden-700 hover:to-golden-600 shadow-lg hover:shadow-xl"
             }`}
           >
             {loading ? "Signing in..." : "Sign In"}
@@ -142,10 +169,16 @@ export default function TeamLogin() {
         <div className="text-center font-chivo pt-2">
           <a
             href="/team/changepassword"
-            className="text-sm font-medium text-black-300 hover:text-golden-400 transition-colors duration-200 underline"
+            className="text-sm font-medium text-golden-300 hover:text-golden-400 transition-colors duration-200 underline"
           >
             Change Password
           </a>
+        </div>
+
+        <div className="text-center pt-4 border-t border-black-700">
+          <p className="text-xs text-black-400">
+            Use the credentials sent to your email to log in
+          </p>
         </div>
       </div>
     </div>
