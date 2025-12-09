@@ -63,16 +63,34 @@ const teamMemberSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Compare password
+// Compare password - Using direct bcrypt.compare instead of instance method
 teamMemberSchema.methods.matchPassword = async function (enteredPassword) {
-  return bcrypt.compare(enteredPassword, this.password);
+  try {
+    console.log("🔍 Comparing entered password with stored hash");
+    const result = await bcrypt.compare(enteredPassword, this.password);
+    console.log("🔍 Comparison result:", result);
+    return result;
+  } catch (error) {
+    console.error("❌ Password comparison error:", error);
+    return false;
+  }
 };
 
 // Generate JWT
 teamMemberSchema.methods.generateToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defined in environment variables");
+  }
+
+  return jwt.sign(
+    {
+      id: this._id,
+      email: this.email,
+      role: this.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 };
 
 export default mongoose.model("TeamMember", teamMemberSchema);

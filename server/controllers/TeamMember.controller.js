@@ -162,7 +162,11 @@ export const createTeamMember = async (req, res) => {
 
     // Generate temporary password
     const temporaryPassword = generatePassword();
+    console.log("🔑 Generated password for", email, ":", temporaryPassword);
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+    console.log("🔐 Password hashed successfully");
 
     // Create team member
     const teamMember = await TeamMember.create({
@@ -176,6 +180,8 @@ export const createTeamMember = async (req, res) => {
       passwordChangeRequired: true,
       isActive: true,
     });
+
+    console.log("✅ Team member created:", teamMember.email);
 
     // Populate projects
     await teamMember.populate("assignedProjects");
@@ -355,9 +361,11 @@ export const loginTeamMember = async (req, res) => {
     const { email, password } = req.body;
 
     console.log("🔐 Login attempt for:", email);
+    console.log("📝 Password received:", password);
 
     // Validation
     if (!email || !password) {
+      console.log("❌ Missing email or password");
       return res.status(400).json({
         success: false,
         message: "Email and password are required",
@@ -377,6 +385,12 @@ export const loginTeamMember = async (req, res) => {
       });
     }
 
+    console.log("✅ User found:", email);
+    console.log(
+      "🔐 Stored password hash:",
+      member.password.substring(0, 20) + "..."
+    );
+
     // Check if account is active
     if (!member.isActive) {
       console.log("❌ Account deactivated:", email);
@@ -388,7 +402,10 @@ export const loginTeamMember = async (req, res) => {
     }
 
     // Check password
-    const isMatch = await member.matchPassword(password);
+    console.log("🔍 Comparing passwords...");
+    const isMatch = await bcrypt.compare(password, member.password);
+    console.log("🔍 Password match result:", isMatch);
+
     if (!isMatch) {
       console.log("❌ Invalid password for:", email);
       return res.status(400).json({
@@ -399,7 +416,6 @@ export const loginTeamMember = async (req, res) => {
 
     // Generate token
     const token = member.generateToken();
-
     console.log("✅ Login successful for:", email);
 
     // Return success
@@ -458,7 +474,7 @@ export const changePassword = async (req, res) => {
     }
 
     // Verify current password
-    const isMatch = await member.matchPassword(currentPassword);
+    const isMatch = await bcrypt.compare(currentPassword, member.password);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
@@ -485,6 +501,69 @@ export const changePassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message || "Failed to change password",
+    });
+  }
+};
+
+// ============================================
+// RESET PASSWORD (Admin feature)
+// ============================================
+export const resetPassword = async (req, res) => {
+  try {
+    const { memberId } = req.params;
+
+    const member = await TeamMember.findById(memberId);
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "Team member not found",
+      });
+    }
+
+    // Generate new temporary password
+    const temporaryPassword = generatePassword();
+    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+
+    // Update password
+    member.password = hashedPassword;
+    member.passwordChangeRequired = true;
+    await member.save();
+
+    console.log(
+      "🔑 New password generated for",
+      member.email,
+      ":",
+      temporaryPassword
+    );
+
+    // Try to send email
+    try {
+      await sendCredentialsEmail(
+        member.email,
+        member.fullName,
+        temporaryPassword
+      );
+      console.log("✅ Password reset email sent");
+
+      res.status(200).json({
+        success: true,
+        message: "Password reset and new credentials sent via email",
+      });
+    } catch (emailError) {
+      console.error("❌ Email failed:", emailError.message);
+
+      // Return the password if email fails
+      res.status(200).json({
+        success: true,
+        message: "Password reset, but email failed to send",
+        temporaryPassword, // Include password in response if email fails
+      });
+    }
+  } catch (error) {
+    console.error("❌ Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to reset password",
     });
   }
 };

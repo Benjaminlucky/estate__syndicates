@@ -8,6 +8,7 @@ import {
   toggleTeamMemberStatus,
   loginTeamMember,
   changePassword,
+  resetPassword,
 } from "../controllers/TeamMember.controller.js";
 
 const router = express.Router();
@@ -17,6 +18,7 @@ const router = express.Router();
 // ============================================
 router.post("/login", loginTeamMember);
 router.post("/change-password", changePassword);
+router.post("/reset-password/:memberId", resetPassword);
 
 // ============================================
 // CRUD ROUTES
