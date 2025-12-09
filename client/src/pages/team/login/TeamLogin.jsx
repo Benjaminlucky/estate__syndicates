@@ -14,51 +14,43 @@ export default function TeamLogin() {
     setLoading(true);
 
     try {
-      // axios automatically uses baseURL from api.js, so just use the endpoint path
-      // Trim whitespace from inputs to prevent login issues
       const response = await api.post("/team-members/login", {
         email: email.trim(),
         password: password.trim(),
       });
 
-      const res = response.data;
-      console.log("Login response:", res);
+      // ✅ ALWAYS USE response.data WITH AXIOS
+      const data = response.data;
 
-      // Check if login was successful
-      if (res.success && res.token) {
-        localStorage.setItem("team_token", res.token);
+      console.log("✅ Login API data:", data);
 
-        // Store member data if needed
-        if (res.member) {
-          localStorage.setItem("team_member", JSON.stringify(res.member));
+      if (data.success === true && data.token) {
+        localStorage.setItem("team_token", data.token);
+
+        if (data.member) {
+          localStorage.setItem("team_member", JSON.stringify(data.member));
         }
 
-        // Redirect to dashboard
-        window.location.href = "/team/dashboard";
+        // ✅ FORCE HARD REDIRECT (avoids SPA state bugs)
+        window.location.replace("/team/dashboard");
       } else {
-        setError(res.message || "Login failed");
+        console.warn("⚠️ API returned failure:", data);
+        setError(data.message || "Login failed");
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("❌ Login error:", err);
 
-      // Better error handling for axios
       let errorMessage = "Login failed. Please check your credentials.";
 
       if (err.response) {
-        // Server responded with error
         errorMessage =
           err.response.data?.message ||
           err.response.data?.error ||
           errorMessage;
-        console.error("Server error:", err.response.status, err.response.data);
       } else if (err.request) {
-        // Request made but no response
         errorMessage = "Cannot connect to server. Please try again.";
-        console.error("Network error:", err.request);
       } else {
-        // Other errors
         errorMessage = err.message || errorMessage;
-        console.error("Error:", err.message);
       }
 
       setError(errorMessage);
