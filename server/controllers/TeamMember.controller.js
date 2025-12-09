@@ -1,54 +1,20 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import TeamMember from "../models/TeamMember.js";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Generate random password
 const generatePassword = () => {
   return crypto.randomBytes(8).toString("hex");
 };
 
-// Send credentials email with timeout and better error handling
+// Send credentials email using Resend
 export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
   try {
-    console.log("📧 Attempting to send email to:", email);
-    console.log("SMTP Config:", {
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      user: process.env.SMTP_USER,
-      secure: process.env.SMTP_SECURE === "true",
-    });
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === "true", // true for 465, false for 587
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-      // ✅ Add connection timeout
-      connectionTimeout: 10000, // 10 seconds
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
-      // ✅ Add TLS options for better compatibility
-      tls: {
-        rejectUnauthorized: false, // Allow self-signed certificates
-        minVersion: "TLSv1.2",
-      },
-      debug: true,
-      logger: true,
-    });
-
-    // ✅ Verify connection with timeout
-    console.log("🔌 Verifying SMTP connection...");
-    await Promise.race([
-      transporter.verify(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("SMTP verification timeout")), 15000)
-      ),
-    ]);
-    console.log("✅ SMTP connection verified");
+    console.log("📧 Sending email via Resend to:", email);
 
     const htmlMessage = `
     <div style="
@@ -131,29 +97,22 @@ export const sendCredentialsEmail = async (email, fullName, tempPassword) => {
     </div>
     `;
 
-    const mailOptions = {
-      from: `"Estates Indicates" <${process.env.SMTP_USER}>`,
+    const { data, error } = await resend.emails.send({
+      from: "Estates Indicates <onboarding@resend.dev>", // Use Resend's domain for testing
       to: email,
       subject: "Your Estates Indicates Account Credentials",
       html: htmlMessage,
-    };
+    });
 
-    console.log("📤 Sending email...");
-    const info = await Promise.race([
-      transporter.sendMail(mailOptions),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Email send timeout")), 20000)
-      ),
-    ]);
+    if (error) {
+      throw new Error(error.message);
+    }
 
-    console.log("✅ Email sent successfully:", info.messageId);
-    return info;
+    console.log("✅ Email sent successfully via Resend:", data.id);
+    return { success: true, id: data.id };
   } catch (error) {
-    console.error("❌ Email sending failed:");
-    console.error("Error name:", error.name);
+    console.error("❌ Resend email error:");
     console.error("Error message:", error.message);
-    console.error("Error code:", error.code);
-    console.error("Full error:", error);
     throw error;
   }
 };
@@ -190,7 +149,7 @@ export const createTeamMember = async (req, res) => {
       isActive: true,
     });
 
-    // Populate projects before sending response
+    // Populate projects
     await teamMember.populate("assignedProjects");
 
     // Try to send email
@@ -203,10 +162,7 @@ export const createTeamMember = async (req, res) => {
       console.log("✅ Credentials email sent successfully");
     } catch (error) {
       emailError = error.message;
-      console.error(
-        "❌ Email sending failed, but user was created:",
-        error.message
-      );
+      console.error("❌ Email failed:", error.message);
     }
 
     // Return success with email status
