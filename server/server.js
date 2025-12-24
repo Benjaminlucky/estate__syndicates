@@ -7,6 +7,8 @@ import investorRoutes from "./routes/investor.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import projectsRoutes from "./routes/Project.route.js";
 import teamMemberRoutes from "./routes/TeamMember.routes.js";
+import vendorRoutes from "./routes/Vendor.routes.js";
+import expenseRoutes from "./routes/expense.routes.js";
 
 dotenv.config();
 
@@ -72,6 +74,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/team-members", teamMemberRoutes);
+app.use("/api/vendors", vendorRoutes);
+app.use("/api/expenses", expenseRoutes);
 
 /* ----------------------------------------------------- */
 /*                   BASE ROUTE                          */

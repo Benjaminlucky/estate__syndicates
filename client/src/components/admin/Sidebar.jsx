@@ -8,6 +8,7 @@ import {
   FaFileAlt,
   FaUser,
   FaHeadset,
+  FaTruck,
 } from "react-icons/fa";
 import { RiTeamFill } from "react-icons/ri";
 
@@ -36,6 +37,11 @@ export default function Sidebar({ open, setOpen }) {
       name: "Add Team Member",
       path: "/dashboard/team",
       icon: <RiTeamFill />,
+    },
+    {
+      name: "Manage Vendors",
+      path: "/dashboard/vendors",
+      icon: <FaTruck />,
     },
     {
       name: "Investment Preference",

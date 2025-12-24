@@ -105,3 +105,17 @@
 .animate-slideUp {
   animation: slideUp 0.35s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #000000;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #28190c; /* golden-900 */
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #5d3f1c; /* golden-700 */
+}

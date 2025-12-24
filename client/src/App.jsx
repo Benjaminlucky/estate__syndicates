@@ -36,6 +36,8 @@ import { ToastContainer } from "react-toastify";
 import TeamMembers from "./pages/admin/dashboard/TeamMembers";
 import TeamLogin from "./pages/team/login/TeamLogin";
 import TeamChangePassword from "./pages/team/changepassword/TeamChangePassword";
+import VendorManager from "./pages/admin/dashboard/VendorManager";
+import Expenses from "./pages/admin/dashboard/Expenses";
 
 function App() {
   const location = useLocation();
@@ -93,7 +95,9 @@ function App() {
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="projects" element={<Projects />} />
+          <Route path="expenses" element={<Expenses />} />
           <Route path="team" element={<TeamMembers />} />
+          <Route path="vendors" element={<VendorManager />} />
         </Route>
       </Routes>
 
