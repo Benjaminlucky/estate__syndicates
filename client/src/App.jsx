@@ -38,6 +38,7 @@ import TeamLogin from "./pages/team/login/TeamLogin";
 import TeamChangePassword from "./pages/team/changepassword/TeamChangePassword";
 import VendorManager from "./pages/admin/dashboard/VendorManager";
 import Expenses from "./pages/admin/dashboard/Expenses";
+import NotFound from "./pages/notfound/NotFound";
 
 function App() {
   const location = useLocation();
@@ -52,7 +53,7 @@ function App() {
   ];
 
   const shouldHideHeaderFooter = hideHeaderFooterRoutes.some((path) =>
-    location.pathname.startsWith(path)
+    location.pathname.startsWith(path),
   );
 
   return (
@@ -91,7 +92,6 @@ function App() {
         </Route>
 
         {/* Admin Dashboard Routes */}
-        {/* Admin Dashboard Routes */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="projects" element={<Projects />} />
@@ -99,6 +99,9 @@ function App() {
           <Route path="team" element={<TeamMembers />} />
           <Route path="vendors" element={<VendorManager />} />
         </Route>
+
+        {/* 404 Not Found - Catch all unmatched routes */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       {!shouldHideHeaderFooter && <Footer />}
