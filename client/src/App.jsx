@@ -39,6 +39,8 @@ import TeamChangePassword from "./pages/team/changepassword/TeamChangePassword";
 import VendorManager from "./pages/admin/dashboard/VendorManager";
 import Expenses from "./pages/admin/dashboard/Expenses";
 import NotFound from "./pages/notfound/NotFound";
+import ForgotPassword from "./pages/forgot-password/ForgotPassword";
+import ResetPassword from "./pages/reset-password/ResetPassword";
 
 function App() {
   const location = useLocation();
@@ -74,6 +76,8 @@ function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/team/login" element={<TeamLogin />} />
         <Route path="/team/changepassword" element={<TeamChangePassword />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Investor Dashboard Routes */}
         <Route path="/investor-dashboard/" element={<InvestorLayout />}>

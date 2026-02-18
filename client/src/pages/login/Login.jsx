@@ -106,6 +106,16 @@ const Login = () => {
                       />
                     </div>
 
+                    {/* Add this right after the password input div, before the button */}
+                    <div className="text-right mt-2 mb-1">
+                      <Link
+                        to="/forgot-password"
+                        className="text-black-300 text-sm hover:text-black-50 underline duration-150 font-chivo"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+
                     <button
                       className="w-full bg-golden-600 rounded-sm py-4 mt-6 hover:bg-golden-500 duration-200 disabled:opacity-50"
                       disabled={loading}
