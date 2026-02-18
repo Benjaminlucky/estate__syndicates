@@ -22,9 +22,9 @@ const generateToken = (investor) => {
    Utility: Brevo SMTP Transporter
 ============================================================================ */
 const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false, // true for port 465, false for 587
+  host: process.env.BREVO_SMTP_HOST,
+  port: Number(process.env.BREVO_SMTP_PORT),
+  secure: true, // ← must be true for port 465
   auth: {
     user: process.env.BREVO_EMAIL,
     pass: process.env.BREVO_SMTP_KEY,
