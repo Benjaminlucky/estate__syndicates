@@ -3,7 +3,7 @@ import Investor from "../models/investors.models.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import * as Brevo from "@getbrevo/brevo";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -19,26 +19,35 @@ const generateToken = (investor) => {
 };
 
 /* ============================================================================
-   Utility: Brevo SMTP Transporter
+   Utility: Brevo API Client (uses HTTPS port 443 — never blocked)
 ============================================================================ */
-const transporter = nodemailer.createTransport({
-  host: process.env.BREVO_SMTP_HOST,
-  port: Number(process.env.BREVO_SMTP_PORT),
-  secure: true, // ← must be true for port 465
-  auth: {
-    user: process.env.BREVO_EMAIL,
-    pass: process.env.BREVO_SMTP_KEY,
-  },
-});
+const brevoClient = new Brevo.TransactionalEmailsApi();
+brevoClient.setApiKey(
+  Brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY,
+);
 
-// Optional: verify transporter on server start (helpful for debugging)
-transporter.verify((error) => {
-  if (error) {
-    console.error("❌ Brevo SMTP connection failed:", error.message);
-  } else {
-    console.log("✅ Brevo SMTP ready");
-  }
-});
+/* ============================================================================
+   Utility: Send Email via Brevo HTTP API
+============================================================================ */
+const sendEmail = async ({ to, toName, subject, html }) => {
+  const sendSmtpEmail = new Brevo.SendSmtpEmail();
+
+  sendSmtpEmail.subject = subject;
+  sendSmtpEmail.htmlContent = html;
+  sendSmtpEmail.sender = {
+    name: "Estate Syndicates",
+    email: "noreply@estatesindicates.com", // must be verified in Brevo dashboard
+  };
+  sendSmtpEmail.to = [{ email: to, name: toName }];
+
+  const response = await brevoClient.sendTransacEmail(sendSmtpEmail);
+  console.log(
+    "✅ Email sent via Brevo API, messageId:",
+    response.body?.messageId,
+  );
+  return response;
+};
 
 /* ============================================================================
    CONTROLLER → CREATE INVESTOR (SIGNUP)
@@ -58,9 +67,9 @@ export const createInvestor = async (req, res) => {
     });
 
     if (existingInvestor) {
-      return res
-        .status(400)
-        .json({ message: "Email or phone number already exists" });
+      return res.status(400).json({
+        message: "Email or phone number already exists",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -153,6 +162,7 @@ export const forgotPassword = async (req, res) => {
     const email = emailAddress.toLowerCase().trim();
     const investor = await Investor.findOne({ emailAddress: email });
 
+    // Always return same message to prevent email enumeration
     if (!investor) {
       return res.status(200).json({
         message: "If that email exists, a reset link has been sent.",
@@ -166,27 +176,31 @@ export const forgotPassword = async (req, res) => {
       .digest("hex");
 
     investor.resetPasswordToken = hashedToken;
-    investor.resetPasswordExpires = Date.now() + 60 * 60 * 1000;
+    investor.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
     await investor.save();
 
     const resetURL = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
 
-    await transporter.sendMail({
-      from: `"Estate Syndicates" <bamidelebenjamin5@gmail.com>`,
+    await sendEmail({
       to: investor.emailAddress,
-      subject: "Password Reset Request",
+      toName: investor.firstName,
+      subject: "Password Reset Request – Estate Syndicates",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px;">
           <h2 style="color: #b8860b;">Estate Syndicates – Password Reset</h2>
           <p>Hi ${investor.firstName},</p>
-          <p>We received a request to reset your password. Click the button below. This link expires in <strong>1 hour</strong>.</p>
+          <p>We received a request to reset your password. Click the button below to proceed. 
+             This link expires in <strong>1 hour</strong>.</p>
           <a href="${resetURL}"
             style="display:inline-block; background:#b8860b; color:#fff; padding:12px 24px;
                    border-radius:4px; text-decoration:none; font-weight:bold; margin:16px 0;">
             Reset Password
           </a>
-          <p>If you didn't request this, you can safely ignore this email.</p>
-          <p style="color:#999; font-size:12px;">This link expires in 1 hour.</p>
+          <p>If you didn't request this, you can safely ignore this email — your password will not change.</p>
+          <hr style="border:none; border-top:1px solid #eee; margin: 24px 0;" />
+          <p style="color:#999; font-size:12px;">
+            This link expires in 1 hour. If you need a new one, visit the forgot password page again.
+          </p>
         </div>
       `,
     });
