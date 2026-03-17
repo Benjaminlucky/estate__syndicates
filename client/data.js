@@ -60,11 +60,11 @@ export const accountLink = [
 export const legallink = [
   {
     name: "Privacy Policy",
-    link: "#",
+    link: "/privacy-policy",
   },
   {
     name: "Terms and Condition",
-    link: "#",
+    link: "/terms",
   },
 ];
 

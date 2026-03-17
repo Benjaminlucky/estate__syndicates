@@ -1,23 +1,23 @@
 import express from "express";
 import {
   createExpense,
-  getAllExpenses, // New import
+  getAllExpenses,
   getProjectExpenses,
   getExpenseSummaryByProject,
   updateExpenseStatus,
 } from "../controllers/expense.controller.js";
 import uploadInvoice from "../middlewares/uploadInvoice.js";
+import { verifyAdmin } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-// Integrated upload middleware for invoices
-router.post("/", uploadInvoice.single("invoice"), createExpense);
-
-// GLOBAL GET: This fixes the 404 error on the main expenses page
+// ── Public reads (investor dashboard will call these) ─────────────
 router.get("/", getAllExpenses);
-
 router.get("/project/:projectId", getProjectExpenses);
 router.get("/summary/:projectId", getExpenseSummaryByProject);
-router.patch("/:id/status", updateExpenseStatus);
+
+// ── Admin writes ──────────────────────────────────────────────────
+router.post("/", verifyAdmin, uploadInvoice.single("invoice"), createExpense);
+router.patch("/:id/status", verifyAdmin, updateExpenseStatus);
 
 export default router;

@@ -8,9 +8,9 @@ import {
 
 import "./App.css";
 import Home from "./pages/Home/Home";
-import Project from "./pages/project/Project";
-import Howitworks from "./pages/howitworks/Howitworks";
-import Reachus from "./pages/reach/Reach";
+import Project from "./pages/project/Project"; // ← replaced with full implementation
+import Howitworks from "./pages/howitworks/Howitworks"; // ← replaced with full implementation
+import Reachus from "./pages/reach/Reach"; // ← replaced with full implementation
 import Signup from "./pages/signup/Signup";
 import Login from "./pages/login/Login";
 import Company from "./pages/company/Company";
@@ -18,6 +18,15 @@ import Topheader from "./components/topHeader/Topheader";
 import Footer from "./components/footer/Footer";
 import AdminSignup from "./pages/admin/AdminSignup";
 import AdminLogin from "./pages/admin/AdminLogin";
+
+// Route guards
+import PrivateRoute from "./components/PrivateRoute";
+import AdminRoute from "./components/AdminRoute";
+
+// NEW pages
+import ProjectDetail from "./pages/project/ProjectDetail"; // ← new individual project page
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy"; // ← new legal page
+import TermsAndConditions from "./pages/legal/Terms"; // ← new legal page
 
 // Dashboards
 import InvestorDashboard from "./pages/investor/dashboard/InvestorDashboard";
@@ -45,7 +54,6 @@ import ResetPassword from "./pages/reset-password/ResetPassword";
 function App() {
   const location = useLocation();
 
-  // Define routes where header and footer should be hidden
   const hideHeaderFooterRoutes = [
     "/investor-dashboard",
     "/admin-dashboard",
@@ -64,23 +72,44 @@ function App() {
       <ToastContainer position="top-right" theme="dark" />
 
       <Routes>
-        {/* Public Routes */}
+        {/* ── Public Routes ─────────────────────────────── */}
         <Route path="/" element={<Home />} />
         <Route path="/company" element={<Company />} />
+
+        {/* Projects — listing + individual detail */}
         <Route path="/projects" element={<Project />} />
+        <Route path="/projects/:id" element={<ProjectDetail />} />
+
         <Route path="/how-it-works" element={<Howitworks />} />
         <Route path="/reach-us" element={<Reachus />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+
+        {/* Legal pages */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
+
+        {/* Admin auth */}
         <Route path="/admin/signup" element={<AdminSignup />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+
+        {/* Team auth */}
         <Route path="/team/login" element={<TeamLogin />} />
         <Route path="/team/changepassword" element={<TeamChangePassword />} />
+
+        {/* Password reset */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* Investor Dashboard Routes */}
-        <Route path="/investor-dashboard/" element={<InvestorLayout />}>
+        {/* ── Investor Dashboard — PROTECTED ────────────── */}
+        <Route
+          path="/investor-dashboard/"
+          element={
+            <PrivateRoute>
+              <InvestorLayout />
+            </PrivateRoute>
+          }
+        >
           <Route index element={<InvestorDashboard />} />
           <Route path="active-projects" element={<InvestorProjects />} />
           <Route path="expense-breakdown" element={<ExpenseBreakdown />} />
@@ -88,15 +117,21 @@ function App() {
           <Route path="documents" element={<Documents />} />
           <Route path="profile-settings" element={<ProfileSettings />} />
           <Route path="support-community" element={<SupportCommunity />} />
-
           <Route
             path="investmentPreference"
             element={<InvestmentPreference />}
           />
         </Route>
 
-        {/* Admin Dashboard Routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        {/* ── Admin Dashboard — PROTECTED ───────────────── */}
+        <Route
+          path="/dashboard"
+          element={
+            <AdminRoute>
+              <DashboardLayout />
+            </AdminRoute>
+          }
+        >
           <Route index element={<AdminDashboard />} />
           <Route path="projects" element={<Projects />} />
           <Route path="expenses" element={<Expenses />} />
@@ -104,7 +139,7 @@ function App() {
           <Route path="vendors" element={<VendorManager />} />
         </Route>
 
-        {/* 404 Not Found - Catch all unmatched routes */}
+        {/* ── 404 ───────────────────────────────────────── */}
         <Route path="*" element={<NotFound />} />
       </Routes>
 

@@ -1,10 +1,14 @@
+/* ─── Project image ─────────────────────────────────────────────── */
+/* Your original rules — untouched */
 .projectimage img {
-  height: 400px; /* Set your desired height */
-  width: 100%; /* Make sure it spans the width of its container */
-  object-fit: cover; /* Ensures the image maintains aspect ratio and fills the container */
-  border-radius: 8px; /* Optional: Adds rounded corners */
+  height: 400px;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
+/* ─── Swiper pagination ─────────────────────────────────────────── */
+/* Your original rules — untouched */
 .swiper-pagination-bullet-active {
   background-color: #c99e75 !important;
   margin-top: 30px !important;
@@ -13,4 +17,36 @@
 .swiper-pagination-bullet {
   background-color: #f1e2d0 !important;
   margin-top: 30px !important;
+}
+
+/* ─── Swiper navigation arrows ──────────────────────────────────── */
+/* Style the prev/next arrows to match the golden palette */
+.swiper-button-prev,
+.swiper-button-next {
+  color: #c99e75 !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  font-size: 18px !important;
+  font-weight: 900;
+}
+
+/* ─── Skeleton shimmer ──────────────────────────────────────────── */
+/* Enhances the animate-pulse on skeleton slides */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.animate-pulse .bg-black-700 {
+  background: linear-gradient(90deg, #262626 0%, #303030 50%, #262626 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
 }

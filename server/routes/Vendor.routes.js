@@ -5,12 +5,16 @@ import {
   updateVendor,
   toggleVendorStatus,
 } from "../controllers/Vendor.controller.js";
+import { verifyAdmin } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.post("/", createVendor);
+// ── Public read ───────────────────────────────────────────────────
 router.get("/", getVendors);
-router.put("/:id", updateVendor);
-router.patch("/:id/toggle-status", toggleVendorStatus);
+
+// ── Admin writes ──────────────────────────────────────────────────
+router.post("/", verifyAdmin, createVendor);
+router.put("/:id", verifyAdmin, updateVendor);
+router.patch("/:id/toggle-status", verifyAdmin, toggleVendorStatus);
 
 export default router;
