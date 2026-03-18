@@ -8,9 +8,9 @@ import {
 
 import "./App.css";
 import Home from "./pages/Home/Home";
-import Project from "./pages/project/Project"; // ← replaced with full implementation
-import Howitworks from "./pages/howitworks/Howitworks"; // ← replaced with full implementation
-import Reachus from "./pages/reach/Reach"; // ← replaced with full implementation
+import Project from "./pages/project/Project";
+import Howitworks from "./pages/howitworks/Howitworks";
+import Reachus from "./pages/reach/Reach";
 import Signup from "./pages/signup/Signup";
 import Login from "./pages/login/Login";
 import Company from "./pages/company/Company";
@@ -24,9 +24,9 @@ import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";
 
 // NEW pages
-import ProjectDetail from "./pages/project/ProjectDetail"; // ← new individual project page
-import PrivacyPolicy from "./pages/legal/PrivacyPolicy"; // ← new legal page
-import TermsAndConditions from "./pages/legal/Terms"; // ← new legal page
+import ProjectDetail from "./pages/project/ProjectDetail";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import TermsAndConditions from "./pages/legal/Terms";
 
 // Dashboards
 import InvestorDashboard from "./pages/investor/dashboard/InvestorDashboard";
@@ -50,6 +50,15 @@ import Expenses from "./pages/admin/dashboard/Expenses";
 import NotFound from "./pages/notfound/NotFound";
 import ForgotPassword from "./pages/forgot-password/ForgotPassword";
 import ResetPassword from "./pages/reset-password/ResetPassword";
+
+// Admin dashboard — new pages
+import InvestmentApprovals from "./pages/admin/dashboard/InvestmentApprovals";
+import AdminPayouts from "./pages/admin/dashboard/AdminPayouts";
+import AdminDocuments from "./pages/admin/dashboard/AdminDocuments";
+import Milestones from "./pages/admin/dashboard/Milestones";
+import Analytics from "./pages/admin/dashboard/Analytics";
+import FinancialReports from "./pages/admin/dashboard/FinancialReports";
+import AdminUsers from "./pages/admin/dashboard/AdminUsers";
 
 function App() {
   const location = useLocation();
@@ -132,11 +141,21 @@ function App() {
             </AdminRoute>
           }
         >
+          {/* Existing routes */}
           <Route index element={<AdminDashboard />} />
           <Route path="projects" element={<Projects />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="team" element={<TeamMembers />} />
           <Route path="vendors" element={<VendorManager />} />
+
+          {/* New routes */}
+          <Route path="investments" element={<InvestmentApprovals />} />
+          <Route path="payouts" element={<AdminPayouts />} />
+          <Route path="documents" element={<AdminDocuments />} />
+          <Route path="milestones" element={<Milestones />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="reports" element={<FinancialReports />} />
+          <Route path="admins" element={<AdminUsers />} />
         </Route>
 
         {/* ── 404 ───────────────────────────────────────── */}
