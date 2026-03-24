@@ -4,25 +4,31 @@ import {
   getMyInvestments,
   getPortfolioSummary,
   getNotifications,
+  getProjectAvailability,
 } from "../controllers/investment.controller.js";
-
+import {
+  verifyAdmin,
+  verifyManagerOrAbove,
+  verifyToken,
+} from "../middlewares/auth.js";
 import Investment from "../models/Investment.js";
-import { verifyAdmin, verifyManagerOrAbove, verifyToken } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-/* ── Investor routes ────────────────────────────────────────────── */
+/* ── Investor routes ─────────────────────────────────────────────
+   NOTE: specific paths MUST come before wildcard /:id paths      */
 router.post("/", verifyToken, createInvestment);
 router.get("/my", verifyToken, getMyInvestments);
 router.get("/my/stats", verifyToken, getPortfolioSummary);
 router.get("/notifications", verifyToken, getNotifications);
+router.get("/project/:projectId/availability", getProjectAvailability); // public
 
-/* ── Admin: get all investments ─────────────────────────────────── */
+/* ── Admin: list all investments ─────────────────────────────── */
 router.get("/", verifyAdmin, async (req, res) => {
   try {
     const investments = await Investment.find()
       .populate("investor", "firstName lastName emailAddress")
-      .populate("project", "title status roi")
+      .populate("project", "title status roi pricePerUnit totalUnits")
       .sort({ createdAt: -1 });
     res.json({ success: true, investments });
   } catch (err) {
@@ -30,7 +36,7 @@ router.get("/", verifyAdmin, async (req, res) => {
   }
 });
 
-/* ── Admin: approve investment (pending → active) ───────────────── */
+/* ── Admin: approve investment ───────────────────────────────── */
 router.patch("/:id/approve", verifyManagerOrAbove, async (req, res) => {
   try {
     const inv = await Investment.findByIdAndUpdate(
@@ -47,12 +53,12 @@ router.patch("/:id/approve", verifyManagerOrAbove, async (req, res) => {
   }
 });
 
-/* ── Admin: reject / cancel investment ──────────────────────────── */
+/* ── Admin: reject investment ────────────────────────────────── */
 router.patch("/:id/reject", verifyManagerOrAbove, async (req, res) => {
   try {
     const inv = await Investment.findByIdAndUpdate(
       req.params.id,
-      { status: "cancelled" },
+      { status: "refunded" },
       { new: true },
     )
       .populate("investor", "firstName lastName emailAddress")
@@ -64,19 +70,22 @@ router.patch("/:id/reject", verifyManagerOrAbove, async (req, res) => {
   }
 });
 
-/* ── Admin: record payout ───────────────────────────────────────── */
+/* ── Admin: record payout ─────────────────────────────────────── */
 router.patch("/:id/payout", verifyManagerOrAbove, async (req, res) => {
   try {
     const { amount, reference, note } = req.body;
-    if (!amount || amount <= 0) {
+    if (!amount || Number(amount) <= 0) {
       return res.status(400).json({ message: "Valid amount required" });
     }
     const inv = await Investment.findById(req.params.id);
     if (!inv) return res.status(404).json({ message: "Investment not found" });
 
     inv.payoutHistory.push({ amount: Number(amount), reference, note });
-    inv.totalPaidOut = (inv.totalPaidOut || 0) + Number(amount);
-    if (inv.totalPaidOut >= inv.amount) inv.status = "completed";
+    const totalPaid = inv.payoutHistory.reduce(
+      (s, p) => s + (p.amount || 0),
+      0,
+    );
+    if (totalPaid >= inv.amount) inv.status = "completed";
     await inv.save();
 
     res.json({ success: true, investment: inv });
