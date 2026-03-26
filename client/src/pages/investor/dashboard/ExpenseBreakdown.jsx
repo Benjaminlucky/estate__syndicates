@@ -13,6 +13,9 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import { FaDownload } from "react-icons/fa";
+import { Spinner } from "flowbite-react";
+import { toast } from "react-toastify";
 import { api } from "../../../lib/api";
 
 const COLORS = [
@@ -25,9 +28,40 @@ const COLORS = [
 ];
 const fmt = (n) => (n != null ? `₦${Number(n).toLocaleString("en-NG")}` : "₦0");
 
+/* ─────────────────────────────────────────────────────────────────
+   Invoice PDF download — uses investor token
+─────────────────────────────────────────────────────────────────── */
+async function downloadInvoice(expenseId, expenseTitle) {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await api.get(`/api/expenses/${expenseId}/invoice`, {
+      responseType: "blob",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const url = URL.createObjectURL(
+      new Blob([res.data], { type: "application/pdf" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `invoice-${expenseTitle.replace(/\s+/g, "-").toLowerCase()}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Invoice downloaded");
+  } catch {
+    toast.error("Failed to download invoice");
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PAGE
+─────────────────────────────────────────────────────────────────── */
 export default function ExpenseBreakdown() {
   const [selectedProject, setSelectedProject] = useState("all");
+  const [downloadingId, setDownloadingId] = useState(null);
 
+  /* ── Data ────────────────────────────────────────────────────── */
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["investor-expenses"],
     queryFn: async () => (await api.get("/api/expenses")).data?.expenses ?? [],
@@ -46,7 +80,7 @@ export default function ExpenseBreakdown() {
     staleTime: 1000 * 60 * 5,
   });
 
-  // Only show expenses for projects the investor has invested in
+  /* ── Filter to only this investor's projects ─────────────────── */
   const investedProjectIds = useMemo(
     () => new Set(investments.map((inv) => inv.project?._id).filter(Boolean)),
     [investments],
@@ -67,6 +101,7 @@ export default function ExpenseBreakdown() {
           (ex) => (ex.project?._id ?? ex.project) === selectedProject,
         );
 
+  /* ── Chart data ──────────────────────────────────────────────── */
   const byCategory = useMemo(() => {
     const map = {};
     filtered.forEach((ex) => {
@@ -90,11 +125,24 @@ export default function ExpenseBreakdown() {
   }, [filtered]);
 
   const totalExpenses = filtered.reduce((s, ex) => s + Number(ex.amount), 0);
+  const totalPaid = filtered.reduce(
+    (s, ex) => s + Number(ex.amountPaid || 0),
+    0,
+  );
+  const totalOutstanding = totalExpenses - totalPaid;
 
   const investedProjects = investments
     .map((inv) => inv.project)
     .filter(Boolean);
 
+  /* ── Invoice download handler ────────────────────────────────── */
+  const handleDownload = async (ex) => {
+    setDownloadingId(ex._id);
+    await downloadInvoice(ex._id, ex.title);
+    setDownloadingId(null);
+  };
+
+  /* ── Render ──────────────────────────────────────────────────── */
   return (
     <div className="p-6 md:p-8 space-y-6">
       <motion.div
@@ -108,11 +156,15 @@ export default function ExpenseBreakdown() {
         </p>
       </motion.div>
 
-      {/* Filter */}
+      {/* Project filter chips */}
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setSelectedProject("all")}
-          className={`px-4 py-2 rounded-lg font-chivo text-sm font-bold uppercase transition-colors ${selectedProject === "all" ? "bg-golden-500 text-white" : "bg-black-800 border border-black-700 text-black-300 hover:border-golden-600"}`}
+          className={`px-4 py-2 rounded-lg font-chivo text-sm font-bold uppercase transition-colors ${
+            selectedProject === "all"
+              ? "bg-golden-500 text-white"
+              : "bg-black-800 border border-black-700 text-black-300 hover:border-golden-600"
+          }`}
         >
           All Projects
         </button>
@@ -120,7 +172,11 @@ export default function ExpenseBreakdown() {
           <button
             key={p._id}
             onClick={() => setSelectedProject(p._id)}
-            className={`px-4 py-2 rounded-lg font-chivo text-sm font-bold uppercase transition-colors ${selectedProject === p._id ? "bg-golden-500 text-white" : "bg-black-800 border border-black-700 text-black-300 hover:border-golden-600"}`}
+            className={`px-4 py-2 rounded-lg font-chivo text-sm font-bold uppercase transition-colors ${
+              selectedProject === p._id
+                ? "bg-golden-500 text-white"
+                : "bg-black-800 border border-black-700 text-black-300 hover:border-golden-600"
+            }`}
           >
             {p.title}
           </button>
@@ -151,13 +207,30 @@ export default function ExpenseBreakdown() {
         </div>
       ) : (
         <>
-          {/* Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Summary cards — now shows paid + outstanding */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {[
-              { label: "Total Expenses", value: fmt(totalExpenses) },
-              { label: "No. of Records", value: filtered.length },
-              { label: "Categories", value: byCategory.length },
-            ].map(({ label, value }) => (
+              {
+                label: "Total Expenses",
+                value: fmt(totalExpenses),
+                color: "text-golden-300",
+              },
+              {
+                label: "Amount Paid",
+                value: fmt(totalPaid),
+                color: "text-green-400",
+              },
+              {
+                label: "Outstanding",
+                value: fmt(totalOutstanding),
+                color: "text-red-400",
+              },
+              {
+                label: "No. of Records",
+                value: filtered.length,
+                color: "text-white",
+              },
+            ].map(({ label, value, color }) => (
               <div
                 key={label}
                 className="bg-black-800 border border-black-700 rounded-xl p-5"
@@ -165,7 +238,7 @@ export default function ExpenseBreakdown() {
                 <p className="font-chivo text-black-400 text-xs uppercase tracking-wide mb-1">
                   {label}
                 </p>
-                <p className="font-bold text-xl text-golden-300">{value}</p>
+                <p className={`font-bold text-xl ${color}`}>{value}</p>
               </div>
             ))}
           </div>
@@ -202,6 +275,7 @@ export default function ExpenseBreakdown() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
+
             <div className="bg-black-800 border border-black-700 rounded-2xl p-6">
               <p className="font-bold uppercase text-sm mb-4">Monthly Spend</p>
               <ResponsiveContainer width="100%" height={220}>
@@ -233,7 +307,7 @@ export default function ExpenseBreakdown() {
             </div>
           </div>
 
-          {/* Table */}
+          {/* Expense records table */}
           <div className="bg-black-800 border border-black-700 rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-black-700">
               <p className="font-bold uppercase text-sm">Expense Records</p>
@@ -242,43 +316,91 @@ export default function ExpenseBreakdown() {
               <table className="w-full text-sm">
                 <thead className="bg-black-900">
                   <tr>
-                    {["Title", "Category", "Amount", "Status", "Date"].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left font-chivo text-black-400 text-xs uppercase tracking-wide"
-                        >
-                          {h}
-                        </th>
-                      ),
-                    )}
+                    {[
+                      "Title",
+                      "Category",
+                      "Total",
+                      "Paid",
+                      "Outstanding",
+                      "Status",
+                      "Date",
+                      "Invoice",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className="px-4 py-3 text-left font-chivo text-black-400 text-xs uppercase tracking-wide"
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black-800">
-                  {filtered.map((ex) => (
-                    <tr
-                      key={ex._id}
-                      className="hover:bg-black-700/30 transition-colors"
-                    >
-                      <td className="px-4 py-3 font-chivo">{ex.title}</td>
-                      <td className="px-4 py-3 font-chivo text-black-400">
-                        {ex.category}
-                      </td>
-                      <td className="px-4 py-3 font-bold text-golden-300">
-                        {fmt(ex.amount)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${ex.paymentStatus === "Paid" ? "bg-green-900/40 text-green-400" : ex.paymentStatus === "Unpaid" ? "bg-red-900/40 text-red-400" : "bg-golden-900/40 text-golden-300"}`}
-                        >
-                          {ex.paymentStatus}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 font-chivo text-black-500 text-xs">
-                        {new Date(ex.createdAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
+                  {filtered.map((ex) => {
+                    const outstanding =
+                      Number(ex.amount) - Number(ex.amountPaid || 0);
+                    const isDownloading = downloadingId === ex._id;
+                    return (
+                      <tr
+                        key={ex._id}
+                        className="hover:bg-black-700/30 transition-colors"
+                      >
+                        <td className="px-4 py-3 font-chivo">{ex.title}</td>
+                        <td className="px-4 py-3 font-chivo text-black-400">
+                          {ex.category}
+                        </td>
+                        <td className="px-4 py-3 font-bold text-golden-300">
+                          {fmt(ex.amount)}
+                        </td>
+                        <td className="px-4 py-3 font-chivo text-green-400">
+                          {ex.paymentStatus === "Unpaid" ? (
+                            <span className="text-black-600">—</span>
+                          ) : (
+                            fmt(ex.amountPaid || ex.amount)
+                          )}
+                        </td>
+                        <td className="px-4 py-3 font-chivo">
+                          {outstanding > 0 ? (
+                            <span className="text-red-400">
+                              {fmt(outstanding)}
+                            </span>
+                          ) : (
+                            <span className="text-black-600">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              ex.paymentStatus === "Paid"
+                                ? "bg-green-900/40 text-green-400"
+                                : ex.paymentStatus === "Unpaid"
+                                  ? "bg-red-900/40 text-red-400"
+                                  : "bg-golden-900/40 text-golden-300"
+                            }`}
+                          >
+                            {ex.paymentStatus}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-chivo text-black-500 text-xs">
+                          {new Date(ex.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleDownload(ex)}
+                            disabled={isDownloading}
+                            title="Download invoice PDF"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-golden-900/20 hover:bg-golden-500/20 text-golden-400 hover:text-golden-300 transition-colors disabled:opacity-50"
+                          >
+                            {isDownloading ? (
+                              <Spinner size="xs" />
+                            ) : (
+                              <FaDownload className="text-[10px]" />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

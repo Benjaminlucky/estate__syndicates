@@ -4,7 +4,9 @@ import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "flowbite-react";
 import { toast } from "react-toastify";
+import { FaDownload, FaFileInvoice } from "react-icons/fa";
 import { api } from "../../../lib/api.js";
+import { adminAuthHeader } from "../../../hooks/useAdmin.js";
 
 const CATEGORY_OPTIONS = [
   "Development",
@@ -16,6 +18,36 @@ const CATEGORY_OPTIONS = [
 const PAYMENT_STATUS_OPTIONS = ["Paid", "Unpaid", "Partially Paid"];
 const PAYMENT_METHOD_OPTIONS = ["Bank Transfer", "Cash", "Cheque", "Online"];
 
+/* ─────────────────────────────────────────────────────────────────
+   Invoice PDF download helper
+   Requests the PDF as a blob and triggers a browser download.
+─────────────────────────────────────────────────────────────────── */
+async function downloadInvoice(expenseId, expenseTitle) {
+  try {
+    const token = localStorage.getItem("adminToken");
+    const res = await api.get(`/api/expenses/${expenseId}/invoice`, {
+      responseType: "blob",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const url = URL.createObjectURL(
+      new Blob([res.data], { type: "application/pdf" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `invoice-${expenseTitle.replace(/\s+/g, "-").toLowerCase()}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Invoice downloaded");
+  } catch {
+    toast.error("Failed to download invoice");
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   MAIN PAGE
+─────────────────────────────────────────────────────────────────── */
 export default function Expenses() {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
@@ -23,9 +55,9 @@ export default function Expenses() {
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [downloadingId, setDownloadingId] = useState(null);
 
-  /* ---------------------- DATA FETCHING ------------------------ */
-
+  /* ── Data ────────────────────────────────────────────────────── */
   const { data: expenses = [], isLoading: loadingExpenses } = useQuery({
     queryKey: ["expenses"],
     queryFn: async () => (await api.get("/api/expenses")).data.expenses,
@@ -41,8 +73,7 @@ export default function Expenses() {
     queryFn: async () => (await api.get("/api/vendors")).data.vendors,
   });
 
-  /* ----------------------- COMPUTATIONS ----------------------- */
-
+  /* ── Filters & stats ─────────────────────────────────────────── */
   const filteredExpenses = useMemo(() => {
     return expenses.filter((ex) => {
       const matchesSearch = ex.title
@@ -57,7 +88,7 @@ export default function Expenses() {
   const stats = useMemo(() => {
     const total = expenses.reduce(
       (acc, curr) => acc + (Number(curr.amount) || 0),
-      0
+      0,
     );
     const paid = expenses
       .filter((e) => e.paymentStatus === "Paid")
@@ -65,8 +96,7 @@ export default function Expenses() {
     return { total, paid, pending: total - paid };
   }, [expenses]);
 
-  /* ----------------------------- MUTATION --------------------------------- */
-
+  /* ── Submit ──────────────────────────────────────────────────── */
   const mutation = useMutation({
     mutationFn: async (formData) =>
       (await api.post("/api/expenses", formData)).data,
@@ -86,22 +116,23 @@ export default function Expenses() {
     setSubmitting(true);
 
     const fd = new FormData();
-
-    // Append all form fields except the invoice file first
     Object.entries(form).forEach(([k, v]) => {
       if (k !== "invoice" && v !== "" && v !== null) {
         fd.append(k, v);
       }
     });
-
-    // Append the file with the key "invoice" to match backend middleware
-    if (form.invoice) {
-      fd.append("invoice", form.invoice);
-    }
-
+    if (form.invoice) fd.append("invoice", form.invoice);
     mutation.mutate(fd);
   };
 
+  /* ── Invoice download ────────────────────────────────────────── */
+  const handleDownload = async (ex) => {
+    setDownloadingId(ex._id);
+    await downloadInvoice(ex._id, ex.title);
+    setDownloadingId(null);
+  };
+
+  /* ── Render ──────────────────────────────────────────────────── */
   return (
     <div className="w-full font-chivo p-6 bg-black min-h-screen text-white">
       {/* HEADER */}
@@ -188,47 +219,89 @@ export default function Expenses() {
                   Amount
                 </th>
                 <th className="p-4 text-xs font-bold text-golden-500 uppercase tracking-widest">
+                  Paid
+                </th>
+                <th className="p-4 text-xs font-bold text-golden-500 uppercase tracking-widest">
                   Status
                 </th>
                 <th className="p-4 text-xs font-bold text-golden-500 uppercase tracking-widest text-right">
                   Date
+                </th>
+                <th className="p-4 text-xs font-bold text-golden-500 uppercase tracking-widest text-center">
+                  Invoice
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-golden-900/10">
               {loadingExpenses ? (
                 <tr>
-                  <td colSpan="5" className="p-10 text-center">
+                  <td colSpan="7" className="p-10 text-center">
                     <Spinner color="warning" />
                   </td>
                 </tr>
               ) : filteredExpenses.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-10 text-center text-gray-500">
+                  <td colSpan="7" className="p-10 text-center text-gray-500">
                     No records found.
                   </td>
                 </tr>
               ) : (
-                filteredExpenses.map((ex) => (
-                  <tr
-                    key={ex._id}
-                    className="hover:bg-golden-900/5 transition-colors group"
-                  >
-                    <td className="p-4 font-medium">{ex.title}</td>
-                    <td className="p-4 text-gray-400 text-sm">
-                      {ex.project?.title || "N/A"}
-                    </td>
-                    <td className="p-4 font-bold text-golden-300">
-                      ₦{Number(ex.amount).toLocaleString()}
-                    </td>
-                    <td className="p-4">
-                      <StatusBadge status={ex.paymentStatus} />
-                    </td>
-                    <td className="p-4 text-right text-gray-500 text-sm">
-                      {new Date(ex.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))
+                filteredExpenses.map((ex) => {
+                  const outstanding = ex.amount - (ex.amountPaid || 0);
+                  const isDownloading = downloadingId === ex._id;
+                  return (
+                    <tr
+                      key={ex._id}
+                      className="hover:bg-golden-900/5 transition-colors group"
+                    >
+                      <td className="p-4 font-medium">{ex.title}</td>
+                      <td className="p-4 text-gray-400 text-sm">
+                        {ex.project?.title || "N/A"}
+                      </td>
+                      <td className="p-4 font-bold text-golden-300">
+                        ₦{Number(ex.amount).toLocaleString()}
+                      </td>
+                      <td className="p-4 text-sm">
+                        {ex.paymentStatus === "Paid" ? (
+                          <span className="text-green-400 font-medium">
+                            ₦{Number(ex.amount).toLocaleString()}
+                          </span>
+                        ) : ex.paymentStatus === "Partially Paid" ? (
+                          <div>
+                            <span className="text-amber-400 font-medium">
+                              ₦{Number(ex.amountPaid || 0).toLocaleString()}
+                            </span>
+                            <span className="text-black-500 text-xs block">
+                              ₦{outstanding.toLocaleString()} left
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-black-600">—</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <StatusBadge status={ex.paymentStatus} />
+                      </td>
+                      <td className="p-4 text-right text-gray-500 text-sm">
+                        {new Date(ex.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() => handleDownload(ex)}
+                          disabled={isDownloading}
+                          title="Download invoice PDF"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-golden-900/20 hover:bg-golden-500/20 text-golden-400 hover:text-golden-300 transition-colors disabled:opacity-50"
+                        >
+                          {isDownloading ? (
+                            <Spinner size="xs" />
+                          ) : (
+                            <FaDownload className="text-xs" />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -250,10 +323,9 @@ export default function Expenses() {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* UI SUB-COMPONENTS                              */
-/* -------------------------------------------------------------------------- */
-
+/* ─────────────────────────────────────────────────────────────────
+   EXPENSE MODAL — now includes amountPaid field for Partially Paid
+─────────────────────────────────────────────────────────────────── */
 function ExpenseModal({
   form,
   setForm,
@@ -265,14 +337,21 @@ function ExpenseModal({
 }) {
   const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  // AUTO-COMMA FORMATTING LOGIC
   const handleAmountChange = (e) => {
     const rawValue = e.target.value.replace(/[^0-9]/g, "");
-    update("amount", rawValue); // Store pure number in state
+    update("amount", rawValue);
+  };
+
+  const handleAmountPaidChange = (e) => {
+    const rawValue = e.target.value.replace(/[^0-9]/g, "");
+    update("amountPaid", rawValue);
   };
 
   const displayAmount = form.amount
     ? "₦" + Number(form.amount).toLocaleString()
+    : "";
+  const displayAmountPaid = form.amountPaid
+    ? "₦" + Number(form.amountPaid).toLocaleString()
     : "";
 
   return (
@@ -304,14 +383,16 @@ function ExpenseModal({
                 required
               />
             </div>
+
             <Input
-              label="Amount"
+              label="Total Amount"
               type="text"
               placeholder="₦0"
               value={displayAmount}
               onChange={handleAmountChange}
               required
             />
+
             <Select
               label="Project"
               value={form.project}
@@ -319,12 +400,14 @@ function ExpenseModal({
               options={projects.map((p) => ({ label: p.title, value: p._id }))}
               required
             />
+
             <Select
               label="Category"
               value={form.category}
               onChange={(e) => update("category", e.target.value)}
               options={CATEGORY_OPTIONS}
             />
+
             <Select
               label="Vendor"
               value={form.vendor}
@@ -332,24 +415,59 @@ function ExpenseModal({
               options={vendors.map((v) => ({ label: v.name, value: v._id }))}
               allowEmpty
             />
+
             <Select
-              label="Status"
+              label="Payment Status"
               value={form.paymentStatus}
-              onChange={(e) => update("paymentStatus", e.target.value)}
+              onChange={(e) => {
+                update("paymentStatus", e.target.value);
+                /* Auto-clear amountPaid when switching away from Partially Paid */
+                if (e.target.value !== "Partially Paid") {
+                  update("amountPaid", "");
+                }
+              }}
               options={PAYMENT_STATUS_OPTIONS}
             />
+
             <Select
               label="Method"
               value={form.paymentMethod}
               onChange={(e) => update("paymentMethod", e.target.value)}
               options={PAYMENT_METHOD_OPTIONS}
             />
+
+            {/* ── Amount Paid — only shown for Partially Paid ─────── */}
+            {form.paymentStatus === "Partially Paid" && (
+              <div className="md:col-span-2">
+                <Input
+                  label="Amount Paid So Far"
+                  type="text"
+                  placeholder="₦0"
+                  value={displayAmountPaid}
+                  onChange={handleAmountPaidChange}
+                />
+                {form.amount && form.amountPaid && Number(form.amount) > 0 && (
+                  <p className="mt-1.5 font-chivo text-xs text-amber-400">
+                    Outstanding:{" "}
+                    <span className="font-bold">
+                      ₦
+                      {Math.max(
+                        0,
+                        Number(form.amount) - Number(form.amountPaid),
+                      ).toLocaleString()}
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
+
           <Textarea
             label="Remarks"
             value={form.notes}
             onChange={(e) => update("notes", e.target.value)}
           />
+
           <FileInput
             label="Invoice Attachment"
             onChange={(f) => update("invoice", f)}
@@ -377,10 +495,9 @@ function ExpenseModal({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* REUSABLE UI ELEMENTS                           */
-/* -------------------------------------------------------------------------- */
-
+/* ─────────────────────────────────────────────────────────────────
+   REUSABLE UI COMPONENTS  (unchanged from original)
+─────────────────────────────────────────────────────────────────── */
 function SummaryCard({ title, amount, color, border }) {
   return (
     <div className={`bg-black-800 p-6 rounded-2xl border ${border} shadow-xl`}>
@@ -413,6 +530,7 @@ function defaultForm() {
   return {
     title: "",
     amount: "",
+    amountPaid: "",
     project: "",
     category: "Development",
     vendor: "",

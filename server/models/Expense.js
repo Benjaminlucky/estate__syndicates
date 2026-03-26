@@ -15,6 +15,19 @@ const expenseSchema = new mongoose.Schema(
       min: 0,
     },
 
+    /* ── Partial payment tracking ──────────────────────────────────
+       amountPaid tracks how much has actually been paid so far.
+       - paymentStatus "Paid"         → amountPaid === amount
+       - paymentStatus "Unpaid"       → amountPaid === 0
+       - paymentStatus "Partially Paid" → 0 < amountPaid < amount
+       outstanding = amount - amountPaid (computed in controller/PDF)
+    ─────────────────────────────────────────────────────────────── */
+    amountPaid: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
@@ -50,7 +63,7 @@ const expenseSchema = new mongoose.Schema(
     },
 
     invoiceUrl: {
-      type: String, // receipt / invoice upload
+      type: String, // receipt / invoice upload (Cloudinary URL)
     },
 
     notes: {
@@ -63,7 +76,7 @@ const expenseSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Expense", expenseSchema);

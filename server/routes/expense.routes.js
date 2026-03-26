@@ -5,18 +5,22 @@ import {
   getProjectExpenses,
   getExpenseSummaryByProject,
   updateExpenseStatus,
+  generateInvoicePDF,
 } from "../controllers/expense.controller.js";
 import uploadInvoice from "../middlewares/uploadInvoice.js";
-import { verifyAdmin } from "../middlewares/auth.js";
+import { verifyAdmin, verifyToken } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-// ── Public reads (investor dashboard will call these) ─────────────
+/* ── Public reads (investor dashboard will call these) ─────────── */
 router.get("/", getAllExpenses);
 router.get("/project/:projectId", getProjectExpenses);
 router.get("/summary/:projectId", getExpenseSummaryByProject);
 
-// ── Admin writes ──────────────────────────────────────────────────
+/* ── Invoice PDF — accessible by both admin and authenticated investor ── */
+router.get("/:id/invoice", verifyToken, generateInvoicePDF);
+
+/* ── Admin writes ──────────────────────────────────────────────── */
 router.post("/", verifyAdmin, uploadInvoice.single("invoice"), createExpense);
 router.patch("/:id/status", verifyAdmin, updateExpenseStatus);
 
